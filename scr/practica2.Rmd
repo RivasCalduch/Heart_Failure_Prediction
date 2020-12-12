@@ -1,0 +1,34 @@
+---
+title: "PEC4 Análisis de la varianza"
+author: "Jose Luis Rivas Calduch"
+date: "11 de diciembre de 2020"
+output: pdf_document
+toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, echo=FALSE, include=FALSE}
+
+# Cargamos la libreria que vamos a emplear para cargar el fichero csv
+library(readr)
+
+# Cargamos el data set
+rawData <- read.csv("C:/Users/rivas/OneDrive/Documentos/UOC/ESTADISTICA AVANZADA/PEC4/Enunciado/RawDataUnbalanced.csv", sep="")
+
+#Cargamos las librerias que vamos a utilizar
+library(faraway)
+library(psych)
+library(GGally)
+library(pROC)
+library(ggplot2)
+library(ggpubr)
+library(dplyr)
+library(DescTools)
+
+```
+
+
+## 1. Introducción
