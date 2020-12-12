@@ -1,6 +1,6 @@
 ---
-title: "PEC4 Análisis de la varianza"
-author: "Jose Luis Rivas Calduch"
+title: "Practica 2: Data Cleaning "
+author: "Jose Luis Rivas Calduch  y Mariano Jiménez Barca"
 date: "11 de diciembre de 2020"
 output: pdf_document
 toc: yes
@@ -16,19 +16,46 @@ knitr::opts_chunk$set(echo = TRUE)
 library(readr)
 
 # Cargamos el data set
-rawData <- read.csv("C:/Users/rivas/OneDrive/Documentos/UOC/ESTADISTICA AVANZADA/PEC4/Enunciado/RawDataUnbalanced.csv", sep="")
+rawData <- read.csv("../data/heart_failure_clinical_records_dataset.csv")
 
-#Cargamos las librerias que vamos a utilizar
-library(faraway)
-library(psych)
-library(GGally)
-library(pROC)
-library(ggplot2)
-library(ggpubr)
-library(dplyr)
-library(DescTools)
+#Cargamos las librerías que vamos a utilizar
+
+
+```
+
+## 1. Descripción del dataset.
+
+El data set objeto de estudio esta tomado de la plataforma *Kaggle*. Esta es una comunidad en línea de científicos de datos y profesionales del aprendizaje automático, actualmente es una subsidiaria de *Google LLC*.
+
+El nombre del data set es *Heart Failure Prediction* (ECV) que son la principal causa de muerte a nivel mundial, cobrando un estimado de 17,9 millones de vidas cada año, lo que representa el 31% de todas las muertes en todo el mundo.
+La insuficiencia cardíaca es un evento común causado por las enfermedades cardiovasculares y este conjunto de datos contiene 12 características que se pueden usar para predecir la mortalidad por insuficiencia cardíaca.
+
+La mayoría de las enfermedades cardiovasculares se pueden prevenir abordando los factores de riesgo conductuales como el consumo de tabaco, la dieta poco saludable y la obesidad, la inactividad física y el consumo nocivo de alcohol utilizando estrategias para toda la población.
+
+Las personas con enfermedad cardiovascular o que se encuentran en alto riesgo cardiovascular (debido a la presencia de uno o más factores de riesgo como hipertensión, diabetes, hiperlipidemia o enfermedad ya establecida) necesitan una detección y manejo precoces donde un modelo de aprendizaje automático puede ser de gran ayuda.
+
+**Tipos de variables**
+
+```{r}
+
+sapply(rawData, class)
+
+```
+
+**Descripción de las variables**
+
+```{r}
+
+str(rawData)
+
+```
+
+**Resumen descriptivo de las variables**
+
+```{r}
+
+summary(rawData)
 
 ```
 
 
-## 1. Introducción
