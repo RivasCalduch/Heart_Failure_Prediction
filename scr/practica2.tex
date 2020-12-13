@@ -1,0 +1,227 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math}
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\hypersetup{
+  pdftitle={Practica 2: Data Cleaning},
+  pdfauthor={Jose Luis Rivas Calduch y Mariano Jiménez Barca},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+\urlstyle{same} % disable monospaced font for URLs
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.77,0.63,0.00}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{graphicx,grffile}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+
+\title{Practica 2: Data Cleaning}
+\author{Jose Luis Rivas Calduch y Mariano Jiménez Barca}
+\date{11 de diciembre de 2020}
+
+\begin{document}
+\maketitle
+
+{
+\setcounter{tocdepth}{3}
+\tableofcontents
+}
+\hypertarget{descripciuxf3n-del-dataset.}{%
+\subsection{1. Descripción del
+dataset.}\label{descripciuxf3n-del-dataset.}}
+
+El data set objeto de estudio esta tomado de la plataforma
+\emph{Kaggle}. Esta es una comunidad en línea de científicos de datos y
+profesionales del aprendizaje automático, actualmente es una subsidiaria
+de \emph{Google LLC}.
+
+El nombre del data set es \emph{Heart Failure Prediction} (ECV) que son
+la principal causa de muerte a nivel mundial, cobrando un estimado de
+17,9 millones de vidas cada año, lo que representa el 31\% de todas las
+muertes en todo el mundo. La insuficiencia cardíaca es un evento común
+causado por las enfermedades cardiovasculares y este conjunto de datos
+contiene 12 características que se pueden usar para predecir la
+mortalidad por insuficiencia cardíaca.
+
+La mayoría de las enfermedades cardiovasculares se pueden prevenir
+abordando los factores de riesgo conductuales como el consumo de tabaco,
+la dieta poco saludable y la obesidad, la inactividad física y el
+consumo nocivo de alcohol utilizando estrategias para toda la población.
+
+Las personas con enfermedad cardiovascular o que se encuentran en alto
+riesgo cardiovascular (debido a la presencia de uno o más factores de
+riesgo como hipertensión, diabetes, hiperlipidemia o enfermedad ya
+establecida) necesitan una detección y manejo precoces donde un modelo
+de aprendizaje automático puede ser de gran ayuda.
+
+\textbf{Tipos de variables}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{sapply}\NormalTok{(rawData, class)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##                      age                  anaemia creatinine_phosphokinase 
+##                "numeric"                "integer"                "integer" 
+##                 diabetes        ejection_fraction      high_blood_pressure 
+##                "integer"                "integer"                "integer" 
+##                platelets         serum_creatinine             serum_sodium 
+##                "numeric"                "numeric"                "integer" 
+##                      sex                  smoking                     time 
+##                "integer"                "integer"                "integer" 
+##              DEATH_EVENT 
+##                "integer"
+\end{verbatim}
+
+\textbf{Descripción de las variables}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{str}\NormalTok{(rawData)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 'data.frame':    299 obs. of  13 variables:
+##  $ age                     : num  75 55 65 50 65 90 75 60 65 80 ...
+##  $ anaemia                 : int  0 0 0 1 1 1 1 1 0 1 ...
+##  $ creatinine_phosphokinase: int  582 7861 146 111 160 47 246 315 157 123 ...
+##  $ diabetes                : int  0 0 0 0 1 0 0 1 0 0 ...
+##  $ ejection_fraction       : int  20 38 20 20 20 40 15 60 65 35 ...
+##  $ high_blood_pressure     : int  1 0 0 0 0 1 0 0 0 1 ...
+##  $ platelets               : num  265000 263358 162000 210000 327000 ...
+##  $ serum_creatinine        : num  1.9 1.1 1.3 1.9 2.7 2.1 1.2 1.1 1.5 9.4 ...
+##  $ serum_sodium            : int  130 136 129 137 116 132 137 131 138 133 ...
+##  $ sex                     : int  1 1 1 1 0 1 1 1 0 1 ...
+##  $ smoking                 : int  0 0 1 0 0 1 0 1 0 1 ...
+##  $ time                    : int  4 6 7 7 8 8 10 10 10 10 ...
+##  $ DEATH_EVENT             : int  1 1 1 1 1 1 1 1 1 1 ...
+\end{verbatim}
+
+\textbf{Resumen descriptivo de las variables}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{summary}\NormalTok{(rawData)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##       age           anaemia       creatinine_phosphokinase    diabetes     
+##  Min.   :40.00   Min.   :0.0000   Min.   :  23.0           Min.   :0.0000  
+##  1st Qu.:51.00   1st Qu.:0.0000   1st Qu.: 116.5           1st Qu.:0.0000  
+##  Median :60.00   Median :0.0000   Median : 250.0           Median :0.0000  
+##  Mean   :60.83   Mean   :0.4314   Mean   : 581.8           Mean   :0.4181  
+##  3rd Qu.:70.00   3rd Qu.:1.0000   3rd Qu.: 582.0           3rd Qu.:1.0000  
+##  Max.   :95.00   Max.   :1.0000   Max.   :7861.0           Max.   :1.0000  
+##  ejection_fraction high_blood_pressure   platelets      serum_creatinine
+##  Min.   :14.00     Min.   :0.0000      Min.   : 25100   Min.   :0.500   
+##  1st Qu.:30.00     1st Qu.:0.0000      1st Qu.:212500   1st Qu.:0.900   
+##  Median :38.00     Median :0.0000      Median :262000   Median :1.100   
+##  Mean   :38.08     Mean   :0.3512      Mean   :263358   Mean   :1.394   
+##  3rd Qu.:45.00     3rd Qu.:1.0000      3rd Qu.:303500   3rd Qu.:1.400   
+##  Max.   :80.00     Max.   :1.0000      Max.   :850000   Max.   :9.400   
+##   serum_sodium        sex            smoking            time      
+##  Min.   :113.0   Min.   :0.0000   Min.   :0.0000   Min.   :  4.0  
+##  1st Qu.:134.0   1st Qu.:0.0000   1st Qu.:0.0000   1st Qu.: 73.0  
+##  Median :137.0   Median :1.0000   Median :0.0000   Median :115.0  
+##  Mean   :136.6   Mean   :0.6488   Mean   :0.3211   Mean   :130.3  
+##  3rd Qu.:140.0   3rd Qu.:1.0000   3rd Qu.:1.0000   3rd Qu.:203.0  
+##  Max.   :148.0   Max.   :1.0000   Max.   :1.0000   Max.   :285.0  
+##   DEATH_EVENT    
+##  Min.   :0.0000  
+##  1st Qu.:0.0000  
+##  Median :0.0000  
+##  Mean   :0.3211  
+##  3rd Qu.:1.0000  
+##  Max.   :1.0000
+\end{verbatim}
+
+\end{document}
