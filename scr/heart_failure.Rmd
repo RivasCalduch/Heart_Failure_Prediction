@@ -1,0 +1,516 @@
+---
+title: "Heart_Failure"
+author: "Mariano Jimenez Barca"
+date: "30/11/2020"
+output:
+  html_document:
+    toc: yes
+    toc_depth: 5
+    toc_float:
+      collapsed: true
+  pdf_document:
+    toc: yes
+toc-title: INDICE DE CONTENIDOS
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### 1.- Descripción del Dataset
+
+Este dataset recoge datos de pacientes reales que han sufrido un infarto de miocardio y que o bien han fallecido o bien han sobrevivido al cabo de un tiempo (recogido en la variable time).  
+Los datos que recoge el dataset nos informa de datos médicos en el momento del ataque y permite a priori craer modelos predictivos respecto a la probablidad de supervivencia de una persona tras un infarto de miocardio en función de sus datos analíticos.  
+
+Permitiría preguntas de tipo ¿Es más probable que sobreviva un paciente fumador a un ataque al corazón? ¿Es más probable que sobreviva una persona de sexo femenino? ¿y una persona con diabetes?  
+
+Permitiría generar un modelo predictivo que informara de cuáles son los pacientes más o menos probables de fallecer en función de una sere de condiciones: edad, concentración de creatinina en suero... y focalizarse más en este tipo de pacientes para tratar de aumentar la posibilidad de supervivencia.  
+
+Los datos los podemos encontrar aqui: https://www.kaggle.com/andrewmvd/heart-failure-clinical-data  
+
+Las variables del dataset son:
+
+Carga del fichero.
+
+
+```{r }
+
+# carga del fichero
+hf <- read.table("C:/Users/MAJIMENE/02.UOC/Master_Data_Science/Tipologia Datos/Practica2/heart_failure_clinical_records_dataset.csv", header= TRUE, sep=",", dec="." )
+head(hf)
+
+```
+```{r }
+
+str(hf)
+
+```
+
+
+
+
+
+```{r }
+
+summary(hf)
+
+```
+Las variables age, creatinine_phosphokinase, ejection_fraction, platelets, serum_creatinine, serum_sodium, time son variables cuantitativas. 
+Las variables anaemia, diabetes, high_blood_pressure, sex, smoking, DEATH_EVENT son variables cualitativas y dicotomicas (valores 1 o 0)
+No tienen valores NA'. Miramos si tienen outliers
+
+
+
+```{r}
+
+par(mfrow=c(2,4))
+hist(hf$age, main = "", xlab = "Age")
+hist((hf$creatinine_phosphokinase), main = "", xlab = "creatinine_phosphokinase")
+hist(hf$ejection_fraction, main = "", xlab = "ejection_fraction")
+hist(hf$platelets, main = "", xlab = "platelets")
+hist((hf$serum_creatinine), main = "", xlab = "serum_creatinine")
+hist(hf$serum_sodium, main = "", xlab = "serum_sodium")
+hist(hf$time, main = "", xlab = "time")
+
+
+```
+
+Age, ejection_fraction, platelets, serum_sodium son variables más o menos normales.  
+Creatinine_phosphokinase, serum creatinine no están normalizadas (con claramente logaritmicas)
+time es una variable que representa el tiempo hasta que el paciente o bien se muere o bien se le da de alta, por lo que desde el punto de vista de diagnóstico no debería ser utilizado (si para posteriores análisis)
+
+
+Comprobamos la normalidad de las variables Age, ejection_fraction, platelets, serum_sodium
+
+```{r}
+
+par(mfrow=c(1,4))
+
+#boxplot(hf$age, main = "", xlab = "Age")
+qqnorm(hf$age, main = "", xlab = "Age", col="red")
+qqline(hf$age, main = "", xlab = "Age", col="black")
+#boxplot(hf$creatinine_phosphokinase, main = "", xlab = "creatinine_phosphokinase")
+#qqnorm(hf$creatinine_phosphokinase, main = "", xlab = "creatinine_phosphokinase", col="red")
+#boxplot(hf$ejection_fraction, main = "", xlab = "ejection_fraction")
+qqnorm(hf$ejection_fraction, main = "", xlab = "ejection_fraction", col="red")
+qqline(hf$ejection_fraction, main = "", xlab = "ejection_fraction", col="black")
+#boxplot(hf$platelets, main = "", xlab = "platelets")
+qqnorm(hf$platelets, main = "", xlab = "platelets", col="red")
+qqline(hf$platelets, main = "", xlab = "platelets", col="black")
+#boxplot(hf$serum_creatinine, main = "", xlab = "serum_creatinine")
+#qqnorm(hf$serum_creatinine, main = "", xlab = "serum_creatinine", col="red")
+#boxplot(hf$serum_sodium, main = "", xlab = "serum_sodium")
+qqnorm(hf$serum_sodium, main = "", xlab = "serum_sodium", col="red")
+qqline(hf$serum_sodium, main = "", xlab = "", col="black")
+#boxplot(hf$time, main = "", xlab = "time")
+#qqnorm(hf$time, main = "", xlab = "time", col="red")
+
+```
+
+
+Si cambiamos ahora los valores de creatinine_phosphokinase y serum_creatinine por sus valores logarítmicos, tenemos que las variables mejoran en su normalidad:
+
+```{r}
+
+par(mfrow=c(2,2))
+
+hist(log(hf$creatinine_phosphokinase), main = "", xlab = "creatinine_phosphokinase")
+qqnorm(log(hf$creatinine_phosphokinase), main = "", xlab = "creatinine_phosphokinase", col="red")
+qqline(log(hf$creatinine_phosphokinase), main = "", xlab = "", col="black")
+hist((log(hf$serum_creatinine)), main = "", xlab = "serum_creatinine")
+qqnorm(log(hf$serum_creatinine), main = "", xlab = "serum_creatinine", col="blue")
+qqline(log(hf$serum_creatinine), main = "", xlab = "serum_creatinine", col="black")
+```
+
+Las variables cualitativas las estudiamos con barplot: anaemia, diabetes, high_blood_pressure, sex, smoking, DEATH_EVENT
+```{r 1.3}
+
+par(mfrow=c(2,3))
+barplot(table(hf$anaemia), xlab="anaemia")
+barplot(table(hf$diabetes), xlab="diabetes")
+barplot(table(hf$high_blood_pressure), xlab="high_blood_pressure")
+barplot(table(hf$sex), xlab="sex")
+barplot(table(hf$smoking), xlab="smoking")
+barplot(table(hf$DEATH_EVENT), xlab="DEATH_EVENT")
+
+
+```
+
+```{r}
+
+SM_SEX <- table(hf$smoking, hf$sex) # en el eje y muestra smoking
+
+# Relación smoking fente a sex
+SM_SEX
+# Relación smoking fente a sex (valores relativos)
+prop.table(SM_SEX)
+```
+Lo que nos dice esta tabla es que hay sólo cuatro mujeres fumadoras. Una población muy pequeña.
+
+```{r }
+
+#Creación de subsets de trabajo para estudio de variables cualitativas anaemia, diabetes, high_blood_pressure
+
+
+hf_sm <- hf[hf$smoking==1 ,]
+hf_nosm<- hf[hf$smoking==0 ,]
+
+hf_m<- hf[hf$sex==1 ,]
+hf_w<- hf[hf$sex==0 ,]
+
+hf_a<- hf[hf$anaemia==1 ,]
+hf_noa<- hf[hf$anaemia==0 ,]
+
+hf_d<- hf[hf$diabetes==1 ,]
+hf_nod<- hf[hf$diabetes==0 ,]
+
+hf_hp<- hf[hf$high_blood_pressure==1 ,]
+hf_nohp<- hf[hf$high_blood_pressure==0 ,]
+
+```
+
+
+
+```{r }
+#cálculo de medias de tiempo en fallacer en función de variables diatomicas
+
+sm <-hf_sm$time[hf_sm$DEATH_EVENT==1]
+nosm <-hf_nosm$time[hf_nosm$DEATH_EVENT==1]
+
+m <-hf_m$time[hf_m$DEATH_EVENT==1]
+w <-hf_w$time[hf_w$DEATH_EVENT==1]
+
+a <-hf_a$time[hf_a$DEATH_EVENT==1]
+noa <-hf_noa$time[hf_noa$DEATH_EVENT==1]
+
+d <-hf_d$time[hf_d$DEATH_EVENT==1]
+nod <-hf_nod$time[hf_nod$DEATH_EVENT==1]
+
+hp <-hf_hp$time[hf_hp$DEATH_EVENT==1]
+nohp <-hf_nohp$time[hf_nohp$DEATH_EVENT==1]
+
+# medias por fumar
+c(mean(sm), mean(nosm))
+
+#medias por sexo
+c(mean(m), mean(w))
+
+#medias por anemia
+c(mean(a), mean(noa))
+
+#medias por diabetes
+c(mean(d), mean(nod))
+
+#medias por hipertensión
+c(mean(hp), mean(nohp))
+
+#media total
+mean(hf$time[hf$DEATH_EVENT==1])
+
+```
+Podemos suponer que el tiempo medio que tarda en fallecer una persona sí depende de las variables cualitativas, pero es necesario realizar un contraste estadístico.
+
+Haremos un contraste estadístico para cada variable cualitativa para comprobar si la media es diferente en cada caso. Para ello en primer lugar sabemos que la media de una función con más de 30 muestras es normal por el teorema del límite central.
+
+Las varianzas de las poblaciones son desconocidas pero sólo necesitamos saber si son iguales. Para ello realizamos un test de contraste de hipótesis de homocedasticidad. La hipótesis nula representa que las varianzas son iguales y la alternativa que las varianzas son diferentes.
+
+Utilizamos la función var.test de R
+
+https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/var.test
+
+```{r}
+# analisis de varianzas test de homocedasticidad
+
+
+vsm<-var.test(sm,nosm, conf.level=0.95)
+vm<-var.test(m, w, conf.level=0.95)
+va<-var.test(a,noa, conf.level=0.95)
+vd<-var.test(d,nod, conf.level=0.95)
+vhp<-var.test(hp,nohp, conf.level=0.95)
+
+c(vsm[["p.value"]], vm[["p.value"]],va[["p.value"]],vd[["p.value"]],vhp[["p.value"]])
+
+```
+
+Dado que ningún p-value es menor que 0.05 no se puede rechazar la hipotesis nula en ninguno de los casos y por lo tanto las varianzas son iguales en todos los casos.  
+
+Para realizar los contrastes estadísticos de las medias en cada caso debemos, ado que es una muestra de una población utilizar la función de T Student con varianzas desconocidas pero iguales.  
+
+Utilizamos la función de R t.test.  
+
+https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/t.test
+
+```{r }
+
+#Contraste de hipótesis. las medias iguales en todos los casos. Con un 95% de nivel de confianza
+
+test_sm<-t.test(sm,nosm, alternative="two.sided", var.equal=TRUE, conf.level=0.95)
+test_m<-t.test(m, w, alternative="two.sided", var.equal=TRUE, conf.level=0.95)
+test_a<-t.test(a,noa, alternative="two.sided", var.equal=TRUE, conf.level=0.95)
+test_d<-t.test(d,nod, alternative="two.sided", var.equal=TRUE, conf.level=0.95)
+test_hp<-t.test(hp,nohp, alternative="two.sided", var.equal=TRUE, conf.level=0.95)
+
+c(test_sm[["p.value"]], test_m[["p.value"]],test_a[["p.value"]],test_d[["p.value"]],test_hp[["p.value"]])
+
+```
+En ninguno de los casos el p-value es menor que el nivel de significación (0.05 por trabajar con un nivel de confianza del 95%). No pueden rechazarse ninguna de las hipótesis nulas y por lo tanto las medias de tiempo no son diferentes en ningún caso. 
+
+Veamos ahora los porcentajes de fallecidos para cada variable dicotomica
+
+```{r}
+
+# Estudio de porcentajes respecto a DEATH_EVENT
+
+po<- nrow(hf[hf$DEATH_EVENT==1,])/nrow(hf)
+
+psm<- nrow(hf_sm[hf_sm$DEATH_EVENT==1,])/nrow(hf_sm)
+pnosm<- nrow(hf_nosm[hf_nosm$DEATH_EVENT==1,])/nrow(hf_nosm)
+
+pm<- nrow(hf_m[hf_m$DEATH_EVENT==1,])/nrow(hf_m)
+pw<- nrow(hf_w[hf_w$DEATH_EVENT==1,])/nrow(hf_w)
+
+pa <- nrow(hf_a[hf_a$DEATH_EVENT==1,])/nrow(hf_a)
+pnoa <- nrow(hf_noa[hf_noa$DEATH_EVENT==1,])/nrow(hf_noa)
+
+pd <- nrow(hf_d[hf_d$DEATH_EVENT==1,])/nrow(hf_d)
+pnod <- nrow(hf_nod[hf_nod$DEATH_EVENT==1,])/nrow(hf_nod)
+
+php <- nrow(hf_hp[hf_hp$DEATH_EVENT==1,])/nrow(hf_hp)
+pnohp <- nrow(hf_nohp[hf_nohp$DEATH_EVENT==1,])/nrow(hf_nohp)
+
+#porcentajes por fumar
+c(po,psm,pnosm)
+
+#porcentajes por sexo
+c(po,pm,pw)
+
+#porcentajes por anemia
+c(po,pa,pnoa)
+
+#porcentajes por diabetes
+c(po,pd,pnod)
+
+#porcentajes por hipertension
+c(po,php,pnohp)
+
+
+```
+
+Vamos a realizar igual que en el caso anterior un contraste estadístico para cada variable en el que vamos a comparar el procentaje de fallecimientos:
+
+- ser fumador frente a no ser fumador
+- ser hombre frente a ser mujer 
+- tener anemia frente a no tener anemia
+- tener diabetes frente a no tener diabetes
+- tener hipertensión frente a no tener hipertensión
+
+la hipotesis nula en todos lo casos corresponde a que el porcentaje de fallecimientos en el primer caso  es igual al porcentaje de fallecimientos en el segundo. Es decir, que el porcentaje de fallecimentos es igual en el caso de ser fumador que no, ser hombre frente a ser mujer, etc...
+
+La hipótesis alternativa sería que el porcentaje de fallecidos es diferente.
+
+Se trata de contrastes bilaterales de proporciones de dos muestras.
+
+Utilizamos la función de R prop.test 
+
+https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/prop.test
+
+
+```{r}
+
+# Contraste de hipótesis para porcentajes
+
+
+# fumador(a)
+xsm<- c(nrow(hf_sm)*psm, nrow(hf_nosm)*pnosm)
+nsm <- c(nrow(hf_sm), nrow(hf_nosm) )
+
+prop_sm <- prop.test(xsm, nsm, alternative = "two.sided")
+
+#sexo
+xm<- c(nrow(hf_m)*pm, nrow(hf_w)*pw)
+nm <- c(nrow(hf_m), nrow(hf_w) )
+
+prop_m <- prop.test(xm, nm, alternative = "two.sided")
+
+#anemia
+xa<- c(nrow(hf_a)*pa, nrow(hf_noa)*pnoa)
+na <- c(nrow(hf_a), nrow(hf_noa) )
+
+prop_a <- prop.test(xa, na, alternative = "two.sided")
+
+#diabetes
+xd<- c(nrow(hf_d)*pd, nrow(hf_nod)*pnod)
+nd <- c(nrow(hf_d), nrow(hf_nod) )
+
+prop_d <- prop.test(xd, nd, alternative = "two.sided")
+
+#hipertension
+xhp<- c(nrow(hf_hp)*php, nrow(hf_nohp)*pnohp)
+nhp <- c(nrow(hf_hp), nrow(hf_nohp) )
+
+prop_hp <- prop.test(xhp, nhp, alternative = "two.sided")
+
+
+c(prop_sm[["p.value"]], prop_m[["p.value"]],prop_a[["p.value"]],prop_d[["p.value"]],prop_hp[["p.value"]])
+
+```
+De nuevo en todos los casos, p-value es superior al nivel de significación, por lo que no puede rechazarse la hipotesis nula. Los porcentajes de fallecidos en todos y cada uno de los casos son iguales.    
+
+No hay diferencias con un nivel de confianza del 95% entre ser fumador o no o ser hombre/mujer o tener diabetes... a la hora de tener más probabilidad de fallecer tras un infarto, según la muestra de datos analizada.  
+
+
+
+MODELO LOGISTICO
+
+
+Vamos a calcular un modelo logístico. Dado que a priori no sabemos qué variables intervienen más en el modelo las incorporamos todas en el modelo
+
+```{r}
+
+# modelo logístico
+
+glm_hf1 <- glm(formula= factor(DEATH_EVENT)~ age + serum_creatinine + ejection_fraction + creatinine_phosphokinase + serum_sodium+ platelets + factor(sex) + factor(smoking) + factor(high_blood_pressure) + factor(diabetes) + anaemia , family=binomial(link=logit), data = hf)
+summary(glm_hf1)
+```
+Interpretación modelo logístico:
+
+El logit, es decir,  ln(P(Y=1/X)/1-P(Y=1/X)) es  4.964 + 5.569e-02 * age + 6.619e-01 * serum_creatinine  -7.032e-02 * ejection_fraction + 2.905e-04 * creatinine_phosphokinase ...
+
+Las variables cuyo p-value (Pr(>|z| del estadístico de Wald, z)  es mayor que el nivel de significación (0.05) no son significativas y no afectan al cálculo del logit)
+
+Se pueden calcular los Odds Ratio de cada variable como el exp de los coeficientes con un intervalo de confianza al 95%.
+
+
+```{r 3.1.2.1}
+exp(glm_hf1[["coefficients"]])
+```
+
+Cuando el odds ratio = 1 indica la no existencia de relación entre variables. 
+Cuando el odds ratio > 1 indica que existe una relación entre variables y que incrementos en la variable independiente aumenta la probabilidad de ocurrir el evento (fallecimiento)
+Cuando el odds ratio < 1 indica que existe una relación negativa. Es decir, incrementos de la variable independiente disminuye la probabilidad del evento (fallecimiento)  
+
+Cuanto mayor (o menor) sea el valor del odds ratio respecto a 1 mayor será la variación de la probabilidad por cada unidad que aumente la variable, asi, para la variable age (por ejemplo), la relación es mayor que 1, y al ser variable continua, indica que por cada unidad que aumenta, el odds de DEATH_EVENT aumenta un 1.0572709. Es decir la probabilidad de fallecer dividido por la probabilidad de no fallecer es un 1.0572709 mayor.  
+
+El p-valor del estadístico de Wald (z value) nos informa si la variable es significativa por lo que podemos inferir que la variable es estadísticamente significativa.  
+
+A la hora de crear un modelo logístico tnemos que tener en cuenta, por tanto, el valor del odd ratio, el p valor y el AIC del modelo resultante. 
+
+Creamos varios modelos y determinamos el que tiene el AIC menor
+
+```{r}
+
+# modelo logístico
+
+glm_hf2 <- glm(formula= factor(DEATH_EVENT)~ age + serum_creatinine + ejection_fraction  , family=binomial(link=logit), data = hf)
+glm_hf3 <- glm(formula= factor(DEATH_EVENT)~ age + serum_creatinine + ejection_fraction + creatinine_phosphokinase, family=binomial(link=logit), data = hf)
+glm_hf4 <- glm(formula= factor(DEATH_EVENT)~ age + serum_creatinine + ejection_fraction + creatinine_phosphokinase + serum_sodium, family=binomial(link=logit), data = hf)
+glm_hf5 <- glm(formula= factor(DEATH_EVENT)~ age + serum_creatinine + ejection_fraction + creatinine_phosphokinase + serum_sodium + platelets, family=binomial(link=logit), data = hf)
+glm_hf6 <- glm(formula= factor(DEATH_EVENT)~ age + serum_creatinine + ejection_fraction  + serum_sodium , family=binomial(link=logit), data = hf)
+glm_hf7 <- glm(formula= factor(DEATH_EVENT)~ age + serum_creatinine + ejection_fraction + creatinine_phosphokinase + serum_sodium + high_blood_pressure + anaemia , family=binomial(link=logit), data = hf)
+glm_hf8 <- glm(formula= factor(DEATH_EVENT)~ age + serum_creatinine + ejection_fraction + creatinine_phosphokinase + serum_sodium + high_blood_pressure + anaemia + sex , family=binomial(link=logit), data = hf)
+
+c(glm_hf2 [["aic"]], glm_hf3 [["aic"]], glm_hf4 [["aic"]], glm_hf5 [["aic"]], glm_hf6 [["aic"]], glm_hf7 [["aic"]], glm_hf8 [["aic"]])
+
+
+```
+
+El modelo que proporciona el AIC más bajo es el que contempla las variables  age, serum_creatinine, ejection_fraction, creatinine_phosphokinase, serum_sodium, high_blood_pressure y anaemia.
+
+El modelo obtenido ya nos proporciona unos valores estimados que podemos comparar con los reales. En fitted.values se encuentra la probabilidad (como el exp(logit)/(1+exp(logit))). Para valores mayores de 0.5 estimamos que la persona fallece y para los casos en que es menor la persona sobrevive. 
+
+
+```{r}
+#Exactitud del modelo estimado.
+
+pred<- glm_hf1[["fitted.values"]]
+pred <- data.frame(pred)
+for (i in 1:nrow(pred)) {
+  if (pred$pred[i] < 0.5){
+  pred$pred[i] <- 0  
+  }else{
+  pred$pred[i] <- 1  
+  }
+}
+resul <- 0
+pred2<- data.frame(pred$pred,hf$DEATH_EVENT,resul)
+names (pred2) <- c("pred","real","resul")
+
+for (i in 1:nrow(pred2)) {
+  if (pred2$pred[i] ==  pred2$real[i]){
+  pred2$resul[i] <- 1  
+  }else{
+  pred2$resul[i] <- 0  
+  }
+}
+sum(pred2$resul)
+sum(pred2$resul)/nrow(pred2)
+```
+
+```{r}
+library(C50)
+set.seed(725)
+data_random <- hf[sample(nrow(hf)),]
+Y <- as.factor(data_random[,13])
+X <- data_random[,1:11]
+
+trainX <- X[1:199,]
+trainY <- Y[1:199]
+
+testX <- X[200:299,]
+testY <- Y[200:299]
+
+hfC50 <- C50::C5.0(trainX, trainY,rules=TRUE ) 
+summary(hfC50)
+```
+
+```{r}
+hfC50 <- C50::C5.0(trainX, trainY ) 
+plot(hfC50)
+```
+
+
+```{r}
+predicted_model <- predict( hfC50, testX, type="class" ) 
+print(sprintf("La precisión del árbol es: %.4f %%",100*sum(predicted_model == testY) / length(predicted_model)))
+```
+```{r}
+mat_conf<-table(testY,Predicted=predicted_model)
+mat_conf
+```
+
+```{r}
+library(descr)
+CrossTable(testY, predicted_model,prop.chisq = FALSE, prop.c = FALSE, prop.r =FALSE,dnn = c('Reality', 'Prediction'))
+```
+
+```{r}
+library(e1071)
+# naives bayes como modelo de clusterización (a ver qué pasa)
+
+set.seed(725)
+hfNBds <- hf[sample(nrow(hf)),]
+hfNBds[,13] <- as.factor(hfNBds[,13])
+hfNBds_train<- hfNBds[1:199,]
+hfNBds_test <- hfNBds[200:299,]
+hfNBds_train<- hfNBds[,-12]  # quito time
+hfNBds_test <- hfNBds[,-12]
+hfNBmodel_train <- naiveBayes( DEATH_EVENT~ ., data = hfNBds_train)
+hfNBmodel_train
+```
+
+
+```{r}
+hfNBmodel_test <- predict(hfNBmodel_train, hfNBds_test[,-12])
+precision <- sum(hfNBmodel_test == hfNBds_test[,12]) / nrow (hfNBds_test)
+precision
+```
+
+```{r}
+library(randomForest)
+hfRF <- randomForest( DEATH_EVENT~ ., data = hfNBds_train)
+print (hfRF)
+```
+
+
+
+
