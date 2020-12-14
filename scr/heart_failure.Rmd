@@ -1,6 +1,6 @@
 ---
-title: "Heart_Failure"
-author: "Mariano Jimenez Barca"
+title: "Practica 2: Data Cleaning"
+author: "Jose Luis Rivas Calduch  y Mariano Jiménez Barca"
 date: "30/11/2020"
 output:
   html_document:
@@ -17,10 +17,31 @@ toc-title: INDICE DE CONTENIDOS
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+```{r, echo=FALSE, include=FALSE}
+
+#Cargamos las diferentes librerias a emplear
+
+#Lectura del fichero csv
+library(readr)
+
+#Libreria para representar graficos
+library(ggpubr)
+library(ggplot2)
+
+#Libreria para el manejo de datos
+library(dplyr)
+
+
+```
+
+
+
+
 ### 1.- Descripción del Dataset
 
-Este dataset recoge datos de pacientes reales que han sufrido un infarto de miocardio y que o bien han fallecido o bien han sobrevivido al cabo de un tiempo (recogido en la variable time).  
-Los datos que recoge el dataset nos informa de datos médicos en el momento del ataque y permite a priori craer modelos predictivos respecto a la probablidad de supervivencia de una persona tras un infarto de miocardio en función de sus datos analíticos.  
+Este dataset recoge datos de pacientes reales que han sufrido un infarto de miocardio y que o bien han fallecido o bien han sobrevivido al cabo de un tiempo (recogido en la variable time).
+
+Los datos que recoge el dataset nos informan de datos médicos en el momento del ataque y permite a priori crear modelos predictivos respecto a la probablidad de supervivencia de una persona tras un infarto de miocardio en función de sus datos analíticos.  
 
 Permitiría preguntas de tipo ¿Es más probable que sobreviva un paciente fumador a un ataque al corazón? ¿Es más probable que sobreviva una persona de sexo femenino? ¿y una persona con diabetes?  
 
@@ -32,32 +53,490 @@ Las variables del dataset son:
 
 Carga del fichero.
 
-
 ```{r }
 
 # carga del fichero
-hf <- read.table("C:/Users/MAJIMENE/02.UOC/Master_Data_Science/Tipologia Datos/Practica2/heart_failure_clinical_records_dataset.csv", header= TRUE, sep=",", dec="." )
+hf <- read.table("../data/heart_failure_clinical_records_dataset.csv", header= TRUE, sep=",", dec="." )
+
 head(hf)
 
 ```
+
+**Descripción de las variables**
+
 ```{r }
 
 str(hf)
 
 ```
 
-
-
-
+**Resumen descriptivo de las variables**
 
 ```{r }
 
 summary(hf)
 
 ```
+
+## 2. Integración y selección de los datos de interés a analizar.
+
+
+
+## 3. Limpieza de los datos.
+
+No tienen valores NA'. 
+
+## 4. Análisis de los datos
+
+#### Variable dependiente (DEATH_EVENT):
+
+Análisis del balanceo del data set.
+
+```{r}
+
+#Factorizamos la varible
+
+hf$DEATH_EVENT <- as.factor(hf$DEATH_EVENT)
+
+ggplot(data = hf, aes(x = DEATH_EVENT, y = ..count.., fill = DEATH_EVENT)) +
+  geom_bar() +
+  scale_fill_manual(values = c("gray50", "orangered2")) +
+  labs(title = "DEATH_EVENT") +
+  theme_bw() +
+  theme(legend.position = "bottom")
+
+
+```
+
+* Tabla de frecuencias (#):
+
+```{r}
+
+table(hf$DEATH_EVENT)
+
+```
+
+* Tabla de frecuencias (%):
+
+```{r}
+prop.table(table(hf$DEATH_EVENT)) %>% round(digits = 2)
+```
+
+Para que un modelo predictivo sea útil, debe de tener un porcentaje de acierto superior a lo esperado por azar a un determinado nivel basal. En problemas de clasificación, el nivel basal es el que se obtiene si se asignan todas las observaciones a la clase mayoritaria (la moda). Por tanto ha de superar el 32%. Este es el porcentaje mínimo que hay que intentar superar con los modelos predictivos. (Siendo estrictos, este porcentaje tendrá que ser recalculado únicamente con el conjunto de entrenamiento).
+
+#### Variables independientes:
+
+#### Variables cuantitativas:
+
 Las variables age, creatinine_phosphokinase, ejection_fraction, platelets, serum_creatinine, serum_sodium, time son variables cuantitativas. 
-Las variables anaemia, diabetes, high_blood_pressure, sex, smoking, DEATH_EVENT son variables cualitativas y dicotomicas (valores 1 o 0)
-No tienen valores NA'. Miramos si tienen outliers
+
+**age**
+
+Edad del paciente objeto de estudio.
+
+Estadisticos de la variable:
+
+```{r}
+
+summary(hf$age)
+
+```
+
+Boxplot
+
+```{r}
+
+boxplot(hf$age)
+
+```
+
+No se observan valores atípicos (outliers).
+
+Análisis de la variable frente a la variable dependiente:
+
+```{r}
+
+p1 <- ggplot(data = hf, aes(x = age, fill = DEATH_EVENT)) +
+      geom_density(alpha = 0.5) +
+      scale_fill_manual(values = c("gray50", "orangered2")) +
+      geom_rug(aes(color = DEATH_EVENT), alpha = 0.5) +
+      scale_color_manual(values = c("gray50", "orangered2")) +
+      theme_bw()
+p2 <- ggplot(data = hf, aes(x = DEATH_EVENT, y = age, color = DEATH_EVENT)) +
+      geom_boxplot(outlier.shape = NA) +
+      geom_jitter(alpha = 0.3, width = 0.15) +
+      scale_color_manual(values = c("gray50", "orangered2")) +
+      theme_bw()
+final_plot <- ggarrange(p1, p2, legend = "top")
+final_plot <- annotate_figure(final_plot, top = text_grob("age", size = 15))
+final_plot
+
+```
+
+Estadísticos según la variable dependiente:
+
+```{r}
+
+# Estadísticos del precio del billete de los supervivientes y fallecidos
+hf %>% filter(!is.na(age)) %>% group_by(DEATH_EVENT) %>%
+          summarise(media = mean(age),
+                    mediana = median(age),
+                    min = min(age),
+                    max = max(age))
+
+```
+
+Tras el análisis se observa como aumenta la probabilidad de fallecimiento en función de la edad. 
+
+**creatinine_phosphokinase**
+
+Nivel de la encima CPK en sangre (mcg/L)
+
+Estadisticos de la variable:
+
+```{r}
+
+summary(hf$creatinine_phosphokinase)
+
+```
+
+Boxplot:
+
+```{r}
+
+boxplot(hf$creatinine_phosphokinase)
+
+```
+
+```{r}
+
+par(mfrow=c(1,2))
+hist(hf$creatinine_phosphokinase, breaks = 100)
+hist(log(hf$creatinine_phosphokinase), breaks = 100)
+
+```
+
+
+Se observan valores atípicos (outliers).
+
+Análisis de la variable frente a la variable dependiente:
+
+```{r}
+
+p1 <- ggplot(data = hf, aes(x = creatinine_phosphokinase, fill = DEATH_EVENT)) +
+      geom_density(alpha = 0.5) +
+      scale_fill_manual(values = c("gray50", "orangered2")) +
+      geom_rug(aes(color = DEATH_EVENT), alpha = 0.5) +
+      scale_color_manual(values = c("gray50", "orangered2")) +
+      theme_bw()
+p2 <- ggplot(data = hf, aes(x = DEATH_EVENT, y = creatinine_phosphokinase, color = DEATH_EVENT)) +
+      geom_boxplot(outlier.shape = NA) +
+      geom_jitter(alpha = 0.3, width = 0.15) +
+      scale_color_manual(values = c("gray50", "orangered2")) +
+      theme_bw()
+final_plot <- ggarrange(p1, p2, legend = "top")
+final_plot <- annotate_figure(final_plot, top = text_grob("creatinine_phosphokinase", size = 15))
+final_plot
+
+```
+
+Estadísticos según la variable dependiente:
+
+```{r}
+
+# Estadísticos del precio del billete de los supervivientes y fallecidos
+hf %>% filter(!is.na(creatinine_phosphokinase)) %>% group_by(DEATH_EVENT) %>%
+          summarise(media = mean(creatinine_phosphokinase),
+                    mediana = median(creatinine_phosphokinase),
+                    min = min(creatinine_phosphokinase),
+                    max = max(creatinine_phosphokinase))
+
+```
+
+**ejection_fraction**
+
+Porcentaje de sangre que sale del corazón en cada contracción.
+
+Estadisticos de la variable:
+
+```{r}
+
+summary(hf$ejection_fraction)
+
+```
+
+Boxplot:
+
+```{r}
+
+boxplot(hf$ejection_fraction)
+
+```
+
+No se observan valores atípicos (outliers).
+
+Análisis de la variable frente a la variable dependiente:
+
+```{r}
+
+p1 <- ggplot(data = hf, aes(x = ejection_fraction, fill = DEATH_EVENT)) +
+      geom_density(alpha = 0.5) +
+      scale_fill_manual(values = c("gray50", "orangered2")) +
+      geom_rug(aes(color = DEATH_EVENT), alpha = 0.5) +
+      scale_color_manual(values = c("gray50", "orangered2")) +
+      theme_bw()
+p2 <- ggplot(data = hf, aes(x = DEATH_EVENT, y = ejection_fraction, color = DEATH_EVENT)) +
+      geom_boxplot(outlier.shape = NA) +
+      geom_jitter(alpha = 0.3, width = 0.15) +
+      scale_color_manual(values = c("gray50", "orangered2")) +
+      theme_bw()
+final_plot <- ggarrange(p1, p2, legend = "top")
+final_plot <- annotate_figure(final_plot, top = text_grob("ejection_fraction", size = 15))
+final_plot
+
+```
+
+Estadísticos según la variable dependiente:
+
+```{r}
+
+# Estadísticos del precio del billete de los supervivientes y fallecidos
+hf %>% filter(!is.na(ejection_fraction)) %>% group_by(DEATH_EVENT) %>%
+          summarise(media = mean(ejection_fraction),
+                    mediana = median(ejection_fraction),
+                    min = min(ejection_fraction),
+                    max = max(ejection_fraction))
+
+```
+
+**platelets**
+
+Plaquetas en la sangre (kiloplatelets/mL).
+
+Estadisticos de la variable:
+
+```{r}
+
+summary(hf$platelets)
+
+```
+
+Boxplot:
+
+```{r}
+
+boxplot(hf$platelets)
+
+```
+
+Se observan valores atípicos (outliers).
+
+Análisis de la variable frente a la variable dependiente:
+
+```{r}
+
+p1 <- ggplot(data = hf, aes(x = platelets, fill = DEATH_EVENT)) +
+      geom_density(alpha = 0.5) +
+      scale_fill_manual(values = c("gray50", "orangered2")) +
+      geom_rug(aes(color = DEATH_EVENT), alpha = 0.5) +
+      scale_color_manual(values = c("gray50", "orangered2")) +
+      theme_bw()
+p2 <- ggplot(data = hf, aes(x = DEATH_EVENT, y = platelets, color = DEATH_EVENT)) +
+      geom_boxplot(outlier.shape = NA) +
+      geom_jitter(alpha = 0.3, width = 0.15) +
+      scale_color_manual(values = c("gray50", "orangered2")) +
+      theme_bw()
+final_plot <- ggarrange(p1, p2, legend = "top")
+final_plot <- annotate_figure(final_plot, top = text_grob("platelets", size = 15))
+final_plot
+
+```
+
+Estadísticos según la variable dependiente:
+
+```{r}
+
+# Estadísticos del precio del billete de los supervivientes y fallecidos
+hf %>% filter(!is.na(platelets)) %>% group_by(DEATH_EVENT) %>%
+          summarise(media = mean(platelets),
+                    mediana = median(platelets),
+                    min = min(platelets),
+                    max = max(platelets))
+
+```
+
+**serum_creatinine**
+
+Nivel de creatinina sérica en sangre (mg / dL).
+
+Estadisticos de la variable:
+
+```{r}
+
+summary(hf$serum_creatinine)
+
+```
+
+Boxplot:
+
+```{r}
+
+boxplot(hf$serum_creatinine)
+
+```
+
+Se observan valores atípicos (outliers).
+
+Análisis de la variable frente a la variable dependiente:
+
+```{r}
+
+p1 <- ggplot(data = hf, aes(x = serum_creatinine, fill = DEATH_EVENT)) +
+      geom_density(alpha = 0.5) +
+      scale_fill_manual(values = c("gray50", "orangered2")) +
+      geom_rug(aes(color = DEATH_EVENT), alpha = 0.5) +
+      scale_color_manual(values = c("gray50", "orangered2")) +
+      theme_bw()
+p2 <- ggplot(data = hf, aes(x = DEATH_EVENT, y = serum_creatinine, color = DEATH_EVENT)) +
+      geom_boxplot(outlier.shape = NA) +
+      geom_jitter(alpha = 0.3, width = 0.15) +
+      scale_color_manual(values = c("gray50", "orangered2")) +
+      theme_bw()
+final_plot <- ggarrange(p1, p2, legend = "top")
+final_plot <- annotate_figure(final_plot, top = text_grob("serum_creatinine", size = 15))
+final_plot
+
+```
+
+Estadísticos según la variable dependiente:
+
+```{r}
+
+# Estadísticos del precio del billete de los supervivientes y fallecidos
+hf %>% filter(!is.na(serum_creatinine)) %>% group_by(DEATH_EVENT) %>%
+          summarise(media = mean(serum_creatinine),
+                    mediana = median(serum_creatinine),
+                    min = min(serum_creatinine),
+                    max = max(serum_creatinine))
+
+```
+
+**serum_sodium**
+
+Nivel de sodio sérico en sangre (mEq / L).
+
+Estadisticos de la variable:
+
+```{r}
+
+summary(hf$serum_sodium)
+
+```
+
+Boxplot:
+
+```{r}
+
+boxplot(hf$serum_sodium)
+
+```
+
+Se observan valores atípicos (outliers).
+
+Análisis de la variable frente a la variable dependiente:
+
+```{r}
+
+p1 <- ggplot(data = hf, aes(x = serum_sodium, fill = DEATH_EVENT)) +
+      geom_density(alpha = 0.5) +
+      scale_fill_manual(values = c("gray50", "orangered2")) +
+      geom_rug(aes(color = DEATH_EVENT), alpha = 0.5) +
+      scale_color_manual(values = c("gray50", "orangered2")) +
+      theme_bw()
+p2 <- ggplot(data = hf, aes(x = DEATH_EVENT, y = serum_sodium, color = DEATH_EVENT)) +
+      geom_boxplot(outlier.shape = NA) +
+      geom_jitter(alpha = 0.3, width = 0.15) +
+      scale_color_manual(values = c("gray50", "orangered2")) +
+      theme_bw()
+final_plot <- ggarrange(p1, p2, legend = "top")
+final_plot <- annotate_figure(final_plot, top = text_grob("serum_sodium", size = 15))
+final_plot
+
+```
+
+Estadísticos según la variable dependiente:
+
+```{r}
+
+# Estadísticos del precio del billete de los supervivientes y fallecidos
+hf %>% filter(!is.na(serum_sodium)) %>% group_by(DEATH_EVENT) %>%
+          summarise(media = mean(serum_sodium),
+                    mediana = median(serum_sodium),
+                    min = min(serum_sodium),
+                    max = max(serum_sodium))
+
+```
+
+**time**
+
+Período de seguimiento (días).
+
+Estadisticos de la variable:
+
+```{r}
+
+summary(hf$time)
+
+```
+
+Boxplot:
+
+```{r}
+
+boxplot(hf$time)
+
+```
+
+Se observan valores atípicos (outliers).
+
+Análisis de la variable frente a la variable dependiente:
+
+```{r}
+
+p1 <- ggplot(data = hf, aes(x = time, fill = DEATH_EVENT)) +
+      geom_density(alpha = 0.5) +
+      scale_fill_manual(values = c("gray50", "orangered2")) +
+      geom_rug(aes(color = DEATH_EVENT), alpha = 0.5) +
+      scale_color_manual(values = c("gray50", "orangered2")) +
+      theme_bw()
+p2 <- ggplot(data = hf, aes(x = DEATH_EVENT, y = time, color = DEATH_EVENT)) +
+      geom_boxplot(outlier.shape = NA) +
+      geom_jitter(alpha = 0.3, width = 0.15) +
+      scale_color_manual(values = c("gray50", "orangered2")) +
+      theme_bw()
+final_plot <- ggarrange(p1, p2, legend = "top")
+final_plot <- annotate_figure(final_plot, top = text_grob("time", size = 15))
+final_plot
+
+```
+
+Estadísticos según la variable dependiente:
+
+```{r}
+
+# Estadísticos del precio del billete de los supervivientes y fallecidos
+hf %>% filter(!is.na(time)) %>% group_by(DEATH_EVENT) %>%
+          summarise(media = mean(time),
+                    mediana = median(time),
+                    min = min(time),
+                    max = max(time))
+
+```
+
+#### Variables cualitativas:
+
+Las variables anaemia, diabetes, high_blood_pressure, sex, smoking, DEATH_EVENT son variables cualitativas y dicotomicas (valores 1 o 0).
+
 
 
 
@@ -107,7 +586,6 @@ qqline(hf$serum_sodium, main = "", xlab = "", col="black")
 
 ```
 
-
 Si cambiamos ahora los valores de creatinine_phosphokinase y serum_creatinine por sus valores logarítmicos, tenemos que las variables mejoran en su normalidad:
 
 ```{r}
@@ -123,6 +601,7 @@ qqline(log(hf$serum_creatinine), main = "", xlab = "serum_creatinine", col="blac
 ```
 
 Las variables cualitativas las estudiamos con barplot: anaemia, diabetes, high_blood_pressure, sex, smoking, DEATH_EVENT
+
 ```{r 1.3}
 
 par(mfrow=c(2,3))
@@ -142,8 +621,10 @@ SM_SEX <- table(hf$smoking, hf$sex) # en el eje y muestra smoking
 
 # Relación smoking fente a sex
 SM_SEX
+
 # Relación smoking fente a sex (valores relativos)
 prop.table(SM_SEX)
+
 ```
 Lo que nos dice esta tabla es que hay sólo cuatro mujeres fumadoras. Una población muy pequeña.
 

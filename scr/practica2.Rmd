@@ -18,10 +18,6 @@ library(readr)
 # Cargamos el data set
 rawData <- read.csv("../data/heart_failure_clinical_records_dataset.csv")
 
-#Cargamos las librerías que vamos a utilizar
-
-
-
 ```
 
 ## 1. Descripción del dataset.
