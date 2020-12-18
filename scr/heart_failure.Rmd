@@ -27,15 +27,13 @@ library(readr)
 #Libreria para representar graficos
 library(ggpubr)
 library(ggplot2)
+library(psych)
 
 #Libreria para el manejo de datos
 library(dplyr)
 
 
 ```
-
-
-
 
 ### 1.- Descripción del Dataset
 
@@ -80,11 +78,30 @@ summary(hf)
 
 ## 2. Integración y selección de los datos de interés a analizar.
 
+(¿?¿? Me surgen dudas sobre este punto)
+
 ## 3. Limpieza de los datos.
 
-No tienen valores NA'. 
+**Estadisticas de los valores vacios**
+
+```{r}
+
+colSums(is.na(hf))
+
+```
+
+
+```{r}
+
+colSums(hf=="")
+
+```
+
+El dataset no tienen valores NA's o vacios. 
 
 ## 4. Análisis de los datos
+
+### 4.1. Análisis descriptivo de los datos:
 
 #### Variable dependiente (DEATH_EVENT):
 
@@ -205,6 +222,57 @@ Boxplot:
 boxplot(hf$creatinine_phosphokinase)
 
 ```
+Se observan valores atípicos (outliers).
+
+Vamos a analizar cuales son los valores atípicos de la muestra utilizando el test de Tukey, que toma como referencia la diferencia entre el primer cuartil *Q1* y el tercer cuartil *Q3*, o rango intercuartílico. En un diagrama de caja se considera un valor atípico el que se encuentra 1,5 veces esa distancia de uno de esos cuartiles (atípico leve) o a 3 veces esa distancia (atípico extremo).
+
+```{r}
+
+#Calculo de los cuartiles
+qrts <- quantile(hf$creatinine_phosphokinase, probs = c(0.25, 0.75))
+
+#Rango intercuartilico
+iqr <- qrts[2]-qrts[1]
+  
+# Umbral
+h_leve <- 1.5 * iqr
+h_extremo <- 3 * iqr
+
+# Limite superior  
+limite_superior_leve <- qrts[2]+h_leve
+limite_superior_extremo <- qrts[2]+h_extremo
+
+# Limite inferior
+limite_inferior_leve <- qrts[1]-h_leve
+limite_inferior_extremo <- qrts[1]-h_extremo
+
+```
+
+- Limite superior leve:
+
+```{r}
+limite_superior_leve
+```
+
+- Limite superior extremo:
+
+```{r}
+limite_superior_extremo
+```
+
+- Limite inferior leve:
+
+```{r}
+limite_inferior_leve
+```
+
+- Limite inferior extremo:
+
+```{r}
+limite_inferior_extremo
+```
+
+(Pendiente de la tomar decisión sobre lo que hacemos con la variable)
 
 ```{r}
 
@@ -213,7 +281,6 @@ hist(hf$creatinine_phosphokinase, breaks = 100)
 hist(log(hf$creatinine_phosphokinase), breaks = 100)
 
 ```
-
 
 Se observan valores atípicos (outliers).
 
@@ -251,6 +318,8 @@ hf %>% filter(!is.na(creatinine_phosphokinase)) %>% group_by(DEATH_EVENT) %>%
 
 ```
 
+No se observa que la variable sea discriminante. 
+
 **ejection_fraction**
 
 Porcentaje de sangre que sale del corazón en cada contracción.
@@ -271,7 +340,7 @@ boxplot(hf$ejection_fraction)
 
 ```
 
-No se observan valores atípicos (outliers).
+Se observan dos valores atípicos (outliers) pero no demasiado extremos.
 
 Análisis de la variable frente a la variable dependiente:
 
@@ -307,6 +376,8 @@ hf %>% filter(!is.na(ejection_fraction)) %>% group_by(DEATH_EVENT) %>%
 
 ```
 
+Se observa como para porcentajes por debajo del 30% la supervivencia es mayor.
+
 **platelets**
 
 Plaquetas en la sangre (kiloplatelets/mL).
@@ -328,6 +399,56 @@ boxplot(hf$platelets)
 ```
 
 Se observan valores atípicos (outliers).
+
+Vamos a analizar cuales son los valores atípicos de la muestra utilizando el test de Tukey como hemos realizado anteriormente.
+
+```{r}
+
+#Calculo de los cuartiles
+qrts <- quantile(hf$platelets, probs = c(0.25, 0.75))
+
+#Rango intercuartilico
+iqr <- qrts[2]-qrts[1]
+  
+# Umbral
+h_leve <- 1.5 * iqr
+h_extremo <- 3 * iqr
+
+# Limite superior  
+limite_superior_leve <- qrts[2]+h_leve
+limite_superior_extremo <- qrts[2]+h_extremo
+
+# Limite inferior
+limite_inferior_leve <- qrts[1]-h_leve
+limite_inferior_extremo <- qrts[1]-h_extremo
+
+```
+
+- Limite superior leve:
+
+```{r}
+limite_superior_leve
+```
+
+- Limite superior extremo:
+
+```{r}
+limite_superior_extremo
+```
+
+- Limite inferior leve:
+
+```{r}
+limite_inferior_leve
+```
+
+- Limite inferior extremo:
+
+```{r}
+limite_inferior_extremo
+```
+
+(Pendiente de la tomar decisión sobre lo que hacemos con la variable)
 
 Análisis de la variable frente a la variable dependiente:
 
@@ -363,6 +484,8 @@ hf %>% filter(!is.na(platelets)) %>% group_by(DEATH_EVENT) %>%
 
 ```
 
+No se observa que la variable sea discriminante.
+
 **serum_creatinine**
 
 Nivel de creatinina sérica en sangre (mg / dL).
@@ -384,6 +507,54 @@ boxplot(hf$serum_creatinine)
 ```
 
 Se observan valores atípicos (outliers).
+
+Vamos a analizar cuales son los valores atípicos de la muestra utilizando el test de Tukey como hemos realizado anteriormente.
+
+```{r}
+
+#Calculo de los cuartiles
+qrts <- quantile(hf$serum_creatinine, probs = c(0.25, 0.75))
+
+#Rango intercuartilico
+iqr <- qrts[2]-qrts[1]
+  
+# Umbral
+h_leve <- 1.5 * iqr
+h_extremo <- 3 * iqr
+
+# Limite superior  
+limite_superior_leve <- qrts[2]+h_leve
+limite_superior_extremo <- qrts[2]+h_extremo
+
+# Limite inferior
+limite_inferior_leve <- qrts[1]-h_leve
+limite_inferior_extremo <- qrts[1]-h_extremo
+
+```
+
+- Limite superior leve:
+
+```{r}
+limite_superior_leve
+```
+
+- Limite superior extremo:
+
+```{r}
+limite_superior_extremo
+```
+
+- Limite inferior leve:
+
+```{r}
+limite_inferior_leve
+```
+
+- Limite inferior extremo:
+
+```{r}
+limite_inferior_extremo
+```
 
 Análisis de la variable frente a la variable dependiente:
 
@@ -419,6 +590,8 @@ hf %>% filter(!is.na(serum_creatinine)) %>% group_by(DEATH_EVENT) %>%
 
 ```
 
+Se observa que para niveles por encima mas/menos 1,5 el nivel de fallecimientos aumenta respecto a los supervivientes.
+
 **serum_sodium**
 
 Nivel de sodio sérico en sangre (mEq / L).
@@ -440,6 +613,54 @@ boxplot(hf$serum_sodium)
 ```
 
 Se observan valores atípicos (outliers).
+
+Vamos a analizar cuales son los valores atípicos de la muestra utilizando el test de Tukey como hemos realizado anteriormente.
+
+```{r}
+
+#Calculo de los cuartiles
+qrts <- quantile(hf$serum_sodium, probs = c(0.25, 0.75))
+
+#Rango intercuartilico
+iqr <- qrts[2]-qrts[1]
+  
+# Umbral
+h_leve <- 1.5 * iqr
+h_extremo <- 3 * iqr
+
+# Limite superior  
+limite_superior_leve <- qrts[2]+h_leve
+limite_superior_extremo <- qrts[2]+h_extremo
+
+# Limite inferior
+limite_inferior_leve <- qrts[1]-h_leve
+limite_inferior_extremo <- qrts[1]-h_extremo
+
+```
+
+- Limite superior leve:
+
+```{r}
+limite_superior_leve
+```
+
+- Limite superior extremo:
+
+```{r}
+limite_superior_extremo
+```
+
+- Limite inferior leve:
+
+```{r}
+limite_inferior_leve
+```
+
+- Limite inferior extremo:
+
+```{r}
+limite_inferior_extremo
+```
 
 Análisis de la variable frente a la variable dependiente:
 
@@ -475,6 +696,8 @@ hf %>% filter(!is.na(serum_sodium)) %>% group_by(DEATH_EVENT) %>%
 
 ```
 
+Se observa que la variable que es dicriminante y que a mayor nivel hay mayor supervivencia.
+
 **time**
 
 Período de seguimiento (días).
@@ -495,7 +718,7 @@ boxplot(hf$time)
 
 ```
 
-Se observan valores atípicos (outliers).
+No se observan valores atípicos (outliers).
 
 Análisis de la variable frente a la variable dependiente:
 
@@ -531,12 +754,203 @@ hf %>% filter(!is.na(time)) %>% group_by(DEATH_EVENT) %>%
 
 ```
 
+(Pendiente de decidir si descartamos la variable)
+
 #### Variables cualitativas:
 
 Las variables anaemia, diabetes, high_blood_pressure, sex, smoking, DEATH_EVENT son variables cualitativas y dicotomicas (valores 1 o 0).
 
+**anaemia**
+
+Si el paciente padece anemia (disminución de glóbulos rojos o hemoglobina).
+
+```{r}
+
+# factorizamos la variable
+
+hf$anaemia <- as.factor(hf$anaemia)
+
+ggplot(data = hf, aes(x = anaemia, y = ..count.., fill = DEATH_EVENT)) +
+  geom_bar() +
+  scale_fill_manual(values = c("gray50", "orangered2")) +
+  labs(title = "DEATH_EVENT") +
+  theme_bw() +
+  theme(legend.position = "bottom")
 
 
+```
+
+* Tabla de frecuencias (#):
+
+```{r}
+
+table(hf$anaemia, hf$DEATH_EVENT)
+
+```
+
+* Tabla de frecuencias (%):
+
+```{r}
+
+prop.table(table(hf$anaemia, hf$DEATH_EVENT),1) %>% round(digits = 2)
+
+```
+
+De análisis de los datos se aprecia que el porcentaje de pacientes con anemia es mayor en aquellos en los que han fallecido.
+
+**diabetes**
+
+Si el paciente padece diabetes.
+
+```{r}
+
+# factorizamos la variable
+
+hf$diabetes <- as.factor(hf$diabetes)
+
+ggplot(data = hf, aes(x = diabetes, y = ..count.., fill = DEATH_EVENT)) +
+  geom_bar() +
+  scale_fill_manual(values = c("gray50", "orangered2")) +
+  labs(title = "DEATH_EVENT") +
+  theme_bw() +
+  theme(legend.position = "bottom")
+
+
+```
+
+* Tabla de frecuencias (#):
+
+```{r}
+
+table(hf$diabetes, hf$DEATH_EVENT)
+
+```
+
+* Tabla de frecuencias (%):
+
+```{r}
+
+prop.table(table(hf$diabetes, hf$DEATH_EVENT),1) %>% round(digits = 2)
+
+```
+
+No se observa que la variable sea discriminante. Dado el número de fallecidos con diabetes es similar a los que no la tienen.
+
+**high_blood_pressure**
+
+Si el paciente padece hipertensión.
+
+```{r}
+
+# factorizamos la variable
+
+hf$high_blood_pressure <- as.factor(hf$high_blood_pressure)
+
+ggplot(data = hf, aes(x = high_blood_pressure, y = ..count.., fill = DEATH_EVENT)) +
+  geom_bar() +
+  scale_fill_manual(values = c("gray50", "orangered2")) +
+  labs(title = "DEATH_EVENT") +
+  theme_bw() +
+  theme(legend.position = "bottom")
+
+
+```
+
+* Tabla de frecuencias (#):
+
+```{r}
+
+table(hf$high_blood_pressure, hf$DEATH_EVENT)
+
+```
+
+* Tabla de frecuencias (%):
+
+```{r}
+
+prop.table(table(hf$high_blood_pressure, hf$DEATH_EVENT),1) %>% round(digits = 2)
+
+```
+
+Se observa que la hipertensión esta presente en mayor proporcion en los casos de fallecimiento.
+
+**sex**
+
+Si el paciente es hombre.
+
+```{r}
+
+# factorizamos la variable
+
+hf$sex <- as.factor(hf$sex)
+
+ggplot(data = hf, aes(x = sex, y = ..count.., fill = DEATH_EVENT)) +
+  geom_bar() +
+  scale_fill_manual(values = c("gray50", "orangered2")) +
+  labs(title = "DEATH_EVENT") +
+  theme_bw() +
+  theme(legend.position = "bottom")
+
+
+```
+
+* Tabla de frecuencias (#):
+
+```{r}
+
+table(hf$sex, hf$DEATH_EVENT)
+
+```
+
+* Tabla de frecuencias (%):
+
+```{r}
+
+prop.table(table(hf$sex, hf$DEATH_EVENT),1) %>% round(digits = 2)
+
+```
+
+No se observa que la variable sea discriminante. Dado el número de fallecidos hombre y mujeres es similar a los que no la tienen.
+
+**smoking**
+
+Si el paciente es fumador.
+
+```{r}
+
+# factorizamos la variable
+
+hf$smoking <- as.factor(hf$smoking)
+
+ggplot(data = hf, aes(x = smoking, y = ..count.., fill = DEATH_EVENT)) +
+  geom_bar() +
+  scale_fill_manual(values = c("gray50", "orangered2")) +
+  labs(title = "DEATH_EVENT") +
+  theme_bw() +
+  theme(legend.position = "bottom")
+
+
+```
+
+* Tabla de frecuencias (#):
+
+```{r}
+
+table(hf$smoking, hf$DEATH_EVENT)
+
+```
+
+* Tabla de frecuencias (%):
+
+```{r}
+
+prop.table(table(hf$smoking, hf$DEATH_EVENT),1) %>% round(digits = 2)
+
+```
+
+No se observa que la variable sea discriminante. Dado el número de fallecidos que fuman es similar a los que no la tienen.
+
+### 4.2. Comprobación de la normalidad y homogeneidad de la varianza:
 
 ```{r}
 
@@ -597,6 +1011,41 @@ hist((log(hf$serum_creatinine)), main = "", xlab = "serum_creatinine")
 qqnorm(log(hf$serum_creatinine), main = "", xlab = "serum_creatinine", col="blue")
 qqline(log(hf$serum_creatinine), main = "", xlab = "serum_creatinine", col="black")
 ```
+
+
+### 4.3. Análisis de correlación entre las variables numéricas:
+
+Vamos a analizar si existe correlación entre las variables numéricas.
+
+```{r}
+
+# Seleccionamos las variables numéricas y las cargamos en un data set
+
+cor <- select(hf,
+              age,
+              creatinine_phosphokinase,
+              ejection_fraction,
+              platelets,
+              serum_creatinine,
+              serum_sodium,
+              time)
+
+
+cor(cor)
+
+```
+
+- Gráfico con la matriz de correlación:
+
+```{r}
+
+corPlot(cor, cex = 1, main = "Matriz de correlación")
+
+```
+
+No se aprecia que exista correlación entre las diferentes variables numéricas.
+
+
 
 Las variables cualitativas las estudiamos con barplot: anaemia, diabetes, high_blood_pressure, sex, smoking, DEATH_EVENT
 
@@ -836,6 +1285,43 @@ c(prop_sm[["p.value"]], prop_m[["p.value"]],prop_a[["p.value"]],prop_d[["p.value
 De nuevo en todos los casos, p-value es superior al nivel de significación, por lo que no puede rechazarse la hipotesis nula. Los porcentajes de fallecidos en todos y cada uno de los casos son iguales.    
 
 No hay diferencias con un nivel de confianza del 95% entre ser fumador o no o ser hombre/mujer o tener diabetes... a la hora de tener más probabilidad de fallecer tras un infarto, según la muestra de datos analizada.  
+
+IMPORTANCIA DE LAS VARIABLES PARA UN MODELO
+
+```{r}
+
+library(Boruta)
+library(pander)
+
+boruta_output <- Boruta(DEATH_EVENT ~., data = hf, doTrace = 0)
+
+names(boruta_output)
+
+```
+
+```{r}
+
+plot(boruta_output, cex.axis=.7, xlab="", main="Variable Importance", las = 2)
+
+```
+
+```{r}
+
+boruta_signif <- getSelectedAttributes(boruta_output, withTentative = TRUE)
+print(boruta_signif)
+
+```
+
+```{r}
+stats <- attStats(boruta_output)
+result <- stats %>%
+                select(meanImp, decision) %>%
+                arrange(desc(meanImp))
+
+pander::pander(result)
+```
+
+
 
 
 
