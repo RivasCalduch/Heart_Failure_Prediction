@@ -71,7 +71,7 @@ Carga del fichero.
 ```{r }
 
 # carga del fichero
-hf <- read.table("C:/Users/MAJIMENE/02.UOC/Master_Data_Science/Tipologia Datos/Practica2/heart_failure_clinical_records_dataset.csv", header= TRUE, sep=",", dec="." )
+hf <- read.table("../data/heart_failure_clinical_records_dataset.csv", header= TRUE, sep=",", dec="." )
 
 head(hf)
 
