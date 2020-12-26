@@ -32,10 +32,12 @@ library(psych)
 #Libreria para el manejo de datos
 library(dplyr)
 
+#Libreria para el análisis de la importancia de las variables
+library(Boruta)
 
 ```
 
-## 1.- Descripción del Dataset
+## 1.- DESCRIPCIÓN DEL DATA SET
 
 Este dataset recoge datos de pacientes reales que han sufrido un infarto de miocardio y que o bien han fallecido o bien han sobrevivido al cabo de un tiempo (recogido en la variable time).
 
@@ -61,13 +63,13 @@ Las variables del dataset son:
 - sex. Hombre o mujer. Binario (w/m).  
 - smoking. Si el  paciente fuma o no. Booleano (1/0).  
 - time. periodo en días en que se hace seguimiento del paciente.  
-- DEATH_EVENT. Si el paciente fallece duante el periodo de seguimiento. Booleano (1/0).  
+- DEATH_EVENT. Si el paciente fallece durante el periodo de seguimiento. Booleano (1/0).  
 
-## 2.- Carga del fichero.
+## 2.- CARGA DEL FICHERO.
 
 ```{r }
 
-# carga del fichero en la variable hf
+# Carga del fichero en la variable hf
 
 hf <- read.table("../data/heart_failure_clinical_records_dataset.csv", header= TRUE, sep=",", dec="." )
 
@@ -97,7 +99,7 @@ summary(hf)
 
 ```
 
-## 3. Limpieza de los datos.
+## 3.- LIMPIEZA DE LOS DATOS.
 
 **Estadísticas de los valores nulos**
 
@@ -117,11 +119,11 @@ colSums(hf=="")
 
 Se observa que el dataset no tienen valores NA's o vacios. 
 
-## 4.- Análisis de los datos
+## 4.- ESTUDIO DESCRIPTIVO DE LOS DATOS Y TRATAMIENTO
 
 ### 4.1. Análisis descriptivo de los datos:
 
-#### Variable dependiente (DEATH_EVENT):
+#### 4.1.1 Variable dependiente (DEATH_EVENT):
 
 Análisis del balanceo del data set.
 
@@ -157,9 +159,9 @@ prop.table(table(hf$DEATH_EVENT)) %>% round(digits = 2)
 
 Para que un modelo predictivo sea útil, debe de tener un porcentaje de acierto superior a lo esperado por azar a un determinado nivel basal. En problemas de clasificación, el nivel basal es el que se obtiene si se asignan todas las observaciones a la clase mayoritaria (la moda). Por tanto ha de superar el 32%. Este es el porcentaje mínimo que hay que intentar superar con los modelos predictivos. (Siendo estrictos, este porcentaje tendrá que ser recalculado únicamente con el conjunto de entrenamiento).
 
-#### Variables independientes:
+#### 4.1.2 Variables independientes:
 
-#### Variables cuantitativas:
+#### 4.1.2.1 Variables cuantitativas:
 
 Las variables age, creatinine_phosphokinase, ejection_fraction, platelets, serum_creatinine, serum_sodium, time son variables cuantitativas. 
 
@@ -167,7 +169,7 @@ Las variables age, creatinine_phosphokinase, ejection_fraction, platelets, serum
 
 Edad del paciente objeto de estudio.
 
-Estadisticos de la variable:
+Estadísticos de la variable:
 
 ```{r}
 
@@ -225,7 +227,7 @@ Tras el análisis se observa como aumenta la probabilidad de fallecimiento en fu
 
 Nivel de la encima CPK en sangre (mcg/L)
 
-Estadisticos de la variable:
+Estadísticos de la variable:
 
 ```{r}
 
@@ -342,7 +344,7 @@ No se observa que la variable sea discriminante.
 
 Porcentaje de sangre que sale del corazón en cada contracción.
 
-Estadisticos de la variable:
+Estadísticos de la variable:
 
 ```{r}
 
@@ -400,7 +402,7 @@ Se observa como para porcentajes por debajo del 30% la supervivencia es mayor.
 
 Plaquetas en la sangre (kiloplatelets/mL).
 
-Estadisticos de la variable:
+Estadísticos de la variable:
 
 ```{r}
 
@@ -508,7 +510,7 @@ No se observa que la variable sea discriminante.
 
 Nivel de creatinina sérica en sangre (mg / dL).
 
-Estadisticos de la variable:
+Estadísticos de la variable:
 
 ```{r}
 
@@ -614,7 +616,7 @@ Se observa que para niveles por encima mas/menos 1,5 el nivel de fallecimientos 
 
 Nivel de sodio sérico en sangre (mEq / L).
 
-Estadisticos de la variable:
+Estadísticos de la variable:
 
 ```{r}
 
@@ -720,7 +722,7 @@ Se observa que la variable que es dicriminante y que a mayor nivel hay mayor sup
 
 Período de seguimiento (días).
 
-Estadisticos de la variable:
+Estadísticos de la variable:
 
 ```{r}
 
@@ -774,7 +776,7 @@ hf %>% filter(!is.na(time)) %>% group_by(DEATH_EVENT) %>%
 
 (Pendiente de decidir si descartamos la variable)
 
-#### Variables cualitativas:
+#### 4.1.2.2 Variables cualitativas:
 
 Las variables anaemia, diabetes, high_blood_pressure, sex, smoking, DEATH_EVENT son variables cualitativas y dicotomicas (valores 1 o 0).
 
@@ -1029,7 +1031,6 @@ hist((log(hf$serum_creatinine)), main = "", xlab = "serum_creatinine")
 qqnorm(log(hf$serum_creatinine), main = "", xlab = "serum_creatinine", col="blue")
 qqline(log(hf$serum_creatinine), main = "", xlab = "serum_creatinine", col="black")
 ```
-
 
 ### 4.3. Análisis de correlación entre las variables numéricas:
 
@@ -1392,7 +1393,6 @@ El modelo que proporciona el AIC más bajo es el numero 5 que contempla las vari
 
 El modelo obtenido ya nos proporciona unos valores estimados que podemos comparar con los reales. En fitted.values se encuentra la probabilidad (como el exp(logit)/(1+exp(logit))). Para valores mayores de 0.5 estimamos que la persona fallece y para los casos en que es menor la persona sobrevive. 
 
-
 ```{r}
 #Exactitud del modelo estimado. Matriz de confusión
 
@@ -1418,7 +1418,7 @@ confMatrix
 
 ```
 
-## 6 - CONCLUSIONES
+## 6.- CONCLUSIONES
 
 Se ha realizado un análisis pormenorizado de cada variable del dataset, con mayor foco en la variable a discriminar. Este análisis visual ya nos informa de que las variables dicotómicas iban a tener poca capacidad predictiva o estadística.  
 
@@ -1434,7 +1434,7 @@ El modelo de regresión logística nos indica que las variables más importantes
 
 El modelo desarrollado tiene una fiabilidad del 77% con un poco más del 50% de capacidad de discernimiento en pacientes con probabilidad de fallecer.  
 
-## 7 - BIBLIOGRAFIA
+## 7.- BIBLIOGRAFIA
 
 *Subirats Maté, Laila; Pérez Trenard, Diego O.; Calvo González, Mireia (2019)* Introducción al ciclo de la vida de los datos. UOC.  
 *Subirats Maté, Laila; Calvo González, Mireia (2019)* Web scraping. UOC.  
@@ -1443,7 +1443,7 @@ El modelo desarrollado tiene una fiabilidad del 77% con un poco más del 50% de 
 *Gironés Roig, Jordi; Casas Roma, Jordi; Minguillon Alfonso, Julia; Caichuelas Quiles, Ramon (2017)* Minería de datos: Modelos y algoritmos. UOC.  
 *Guillén Estany, Montserrat; Alonso Alonso, María Teresa (2020)* Modelos de Regresión Logística. UOC.
 
-## 8 - AGRADECIMIENTOS DATASET
+## 8.- AGRADECIMIENTOS DATASET
 
 *Cita*
 Davide Chicco, Giuseppe Jurman: Machine learning can predict survival of patients with heart failure from serum creatinine and ejection fraction alone. BMC Medical Informatics and Decision Making 20, 16 (2020). https://bmcmedinformdecismak.biomedcentral.com/articles/10.1186/s12911-020-1023-5
@@ -1451,7 +1451,7 @@ Davide Chicco, Giuseppe Jurman: Machine learning can predict survival of patient
 *License*
 CC BY 4.0
 
-## 9. ANEXO
+## 9.- ANEXO
 
 ### 9.1. Estudio de la importacia de las variables en los modelos.
 
@@ -1460,8 +1460,6 @@ Procedemos a la selección de variables. Usaremos el paquete Boruta para ello, d
 Boruta realiza una búsqueda de tipo Backwards mediante un algoritmo wrapper de Random Forest, y por defecto, usa un p-valor del 0.01 para confirmar cuándo una variable es estadísticamente importante o no.
 
 ```{r}
-
-library(Boruta)
 
 boruta_output <- Boruta(DEATH_EVENT ~., data = hf, doTrace = 0)
 
