@@ -82,7 +82,7 @@ summary(hf)
 
 ## 3. Limpieza de los datos.
 
-**Estadisticas de los valores vacios**
+**Estadísticas de los valores vacios**
 
 ```{r}
 
@@ -164,6 +164,14 @@ Boxplot
 boxplot(hf$age)
 
 ```
+
+```{r}
+
+ggplot(hf, aes(y=age)) + geom_boxplot(outlier.shape = NA) +
+      theme_bw()
+
+```
+
 
 No se observan valores atípicos (outliers).
 
@@ -1288,16 +1296,20 @@ No hay diferencias con un nivel de confianza del 95% entre ser fumador o no o se
 
 IMPORTANCIA DE LAS VARIABLES PARA UN MODELO
 
+Procedemos a la selección de variables. Usaremos el paquete Boruta para ello, dada su capacidad de mostrar visualmente la importancia de cada variable del dataset.
+
+Boruta realiza una búsqueda de tipo Backwards mediante un algoritmo wrapper de Random Forest, y por defecto, usa un p-valor del 0.01 para confirmar cuándo una variable es estadísticamente importante o no.
+
 ```{r}
 
 library(Boruta)
-library(pander)
 
 boruta_output <- Boruta(DEATH_EVENT ~., data = hf, doTrace = 0)
 
 names(boruta_output)
 
 ```
+
 
 ```{r}
 
@@ -1309,16 +1321,19 @@ plot(boruta_output, cex.axis=.7, xlab="", main="Variable Importance", las = 2)
 
 boruta_signif <- getSelectedAttributes(boruta_output, withTentative = TRUE)
 print(boruta_signif)
-
 ```
 
-```{r}
-stats <- attStats(boruta_output)
-result <- stats %>%
-                select(meanImp, decision) %>%
-                arrange(desc(meanImp))
 
-pander::pander(result)
+```{r}
+
+library(data.table)
+
+x <- attStats(boruta_output)
+
+ranking <- data.table(attribute=rownames(x), x)[order(-meanImp)]
+
+print(ranking)
+
 ```
 
 
