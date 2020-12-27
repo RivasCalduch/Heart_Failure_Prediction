@@ -1,5 +1,5 @@
 ---
-title: "Practica 2: Data Cleaning"
+title: 'Practica 2: Data Cleaning'
 author: "Jose Luis Rivas Calduch  y Mariano Jiménez Barca"
 date: "30/11/2020"
 output:
@@ -9,7 +9,10 @@ output:
     toc: yes
     toc_depth: 5
     toc_float:
-      collapsed: true
+      collapsed: yes
+  word_document:
+    toc: yes
+    toc_depth: '5'
 toc-title: Indice de contenidos
 ---
 
@@ -37,6 +40,8 @@ library(Boruta)
 
 ```
 
+\newpage 
+
 ## 1.- DESCRIPCIÓN DEL DATA SET
 
 Este dataset recoge datos de pacientes reales que han sufrido un infarto de miocardio y que o bien han fallecido o bien han sobrevivido al cabo de un tiempo (recogido en la variable time).
@@ -45,7 +50,7 @@ Los datos que recoge el dataset nos informan de datos médicos en el momento del
 
 Permitiría preguntas de tipo ¿Es más probable que sobreviva un paciente fumador a un ataque al corazón? ¿Es más probable que sobreviva una persona de sexo femenino? ¿y una persona con diabetes?  
 
-Los datos quizá también permitan generar un modelo predictivo que informara de cuáles son los pacientes más o menos probables de fallecer en función de una sere de condiciones: edad, concentración de creatinina en suero... y focalizarse más en este tipo de pacientes para tratar de aumentar la posibilidad de supervivencia.  
+Los datos quizá también permitan generar un modelo predictivo que informara de cuáles son los pacientes más o menos probables de fallecer en función de una serie de condiciones: edad, concentración de creatinina en suero... y focalizarse más en este tipo de pacientes para tratar de aumentar la posibilidad de supervivencia.  
 
 Los datos los podemos encontrar aqui: https://www.kaggle.com/andrewmvd/heart-failure-clinical-data. Los datos forman parte de un artículo publicado en el BMC Medical Informatics and Decision Making. EL artículo completo puede verse aquí: https://bmcmedinformdecismak.biomedcentral.com/articles/10.1186/s12911-020-1023-5#Tab8. Los autores del articulo son citados en el apartado agradecimientos.  
 
@@ -64,6 +69,8 @@ Las variables del dataset son:
 - smoking. Si el  paciente fuma o no. Booleano (1/0).  
 - time. periodo en días en que se hace seguimiento del paciente.  
 - DEATH_EVENT. Si el paciente fallece durante el periodo de seguimiento. Booleano (1/0).  
+
+\newpage 
 
 ## 2.- CARGA DEL FICHERO.
 
@@ -99,7 +106,11 @@ summary(hf)
 
 ```
 
+\newpage
+
 ## 3.- LIMPIEZA DE LOS DATOS.
+
+Vamos a identificar la existencia de valores nulos (NA´s) o vacios en el data set.
 
 **Estadísticas de los valores nulos**
 
@@ -119,13 +130,19 @@ colSums(hf=="")
 
 Se observa que el dataset no tienen valores NA's o vacios. 
 
+\newpage
+
 ## 4.- ESTUDIO DESCRIPTIVO DE LOS DATOS Y TRATAMIENTO
 
 ### 4.1. Análisis descriptivo de los datos:
 
+Vamos a realizar una aproximación utilizando técnicas de análisis  descriptivo estadístico a los datos contenidos al data set con objeto de determinar cual es su poder de discriminación frente a la variable dependiente y que implicaciones tiene entre ella de cara a desarrollar un modelo.
+
 #### 4.1.1 Variable dependiente (DEATH_EVENT):
 
-Análisis del balanceo del data set.
+Nos enfrentamos a un problema a resolver de clasificación donde tenemos una variable dependiente binaria es un tipo de modelo que se utiliza para explicar fenómenos en los cuales la variable de relevancia es dicotómica o binaria, es decir, solo puede tomar dos valores.
+
+* Análisis del balanceo del data set.
 
 ```{r}
 
@@ -1064,6 +1081,8 @@ corPlot(cor, cex = 1, main = "Matriz de correlación")
 
 No se aprecia que exista correlación entre las diferentes variables numéricas.
 
+\newpage
+
 ## 5.- ANALISIS
 
 Dado el análisis de la información realizado sobre las variables nos planteamos tres análisis a realizar sobre los datos del dataset:
@@ -1396,27 +1415,29 @@ El modelo obtenido ya nos proporciona unos valores estimados que podemos compara
 ```{r}
 #Exactitud del modelo estimado. Matriz de confusión
 
-pred<- glm_hf5[["fitted.values"]]
-pred <- data.frame(pred,hf$DEATH_EVENT,resul)
-for (i in 1:nrow(pred)) {
-  if (pred$pred[i] < 0.5){
-  pred$pred[i] <- 0  
-  }else{
-  pred$pred[i] <- 1  
-  }
-}
-names (pred) <- c("pred","real")
+#pred<- glm_hf5[["fitted.values"]]
+#pred <- data.frame(pred,hf$DEATH_EVENT,resul)
+#for (i in 1:nrow(pred)) {
+#  if (pred$pred[i] < 0.5){
+#  pred$pred[i] <- 0  
+#  }else{
+#  pred$pred[i] <- 1  
+#  }
+#}
+#names (pred) <- c("pred","real")
 
 #matriz de confusión
-confMatrix<-table(pred$pred, pred$real)
+#confMatrix<-table(pred$pred, pred$real)
 
-confMatrix
+#confMatrix
 
 # precisión
-(confMatrix[1,1]+confMatrix[2,2])/sum(t)
+#(confMatrix[1,1]+confMatrix[2,2])/sum(t)
 
 
 ```
+
+\newpage
 
 ## 6.- CONCLUSIONES
 
@@ -1434,6 +1455,8 @@ El modelo de regresión logística nos indica que las variables más importantes
 
 El modelo desarrollado tiene una fiabilidad del 77% con un poco más del 50% de capacidad de discernimiento en pacientes con probabilidad de fallecer.  
 
+\newpage
+
 ## 7.- BIBLIOGRAFIA
 
 *Subirats Maté, Laila; Pérez Trenard, Diego O.; Calvo González, Mireia (2019)* Introducción al ciclo de la vida de los datos. UOC.  
@@ -1443,13 +1466,19 @@ El modelo desarrollado tiene una fiabilidad del 77% con un poco más del 50% de 
 *Gironés Roig, Jordi; Casas Roma, Jordi; Minguillon Alfonso, Julia; Caichuelas Quiles, Ramon (2017)* Minería de datos: Modelos y algoritmos. UOC.  
 *Guillén Estany, Montserrat; Alonso Alonso, María Teresa (2020)* Modelos de Regresión Logística. UOC.
 
+\newpage
+
 ## 8.- AGRADECIMIENTOS DATASET
 
 *Cita*
+
 Davide Chicco, Giuseppe Jurman: Machine learning can predict survival of patients with heart failure from serum creatinine and ejection fraction alone. BMC Medical Informatics and Decision Making 20, 16 (2020). https://bmcmedinformdecismak.biomedcentral.com/articles/10.1186/s12911-020-1023-5
 
 *License*
+
 CC BY 4.0
+
+\newpage
 
 ## 9.- ANEXO
 
@@ -1458,6 +1487,8 @@ CC BY 4.0
 Procedemos a la selección de variables. Usaremos el paquete Boruta para ello, dada su capacidad de mostrar visualmente la importancia de cada variable del dataset.
 
 Boruta realiza una búsqueda de tipo Backwards mediante un algoritmo wrapper de Random Forest, y por defecto, usa un p-valor del 0.01 para confirmar cuándo una variable es estadísticamente importante o no.
+
+Vamos a eliminar la variable 
 
 ```{r}
 
