@@ -1110,8 +1110,7 @@ Dado el análisis de la información realizado sobre las variables nos planteamo
 3.- Regresión logística para calcular si hay más probabilidad de morir que no en función de los parámetros médicos a la recepción del paciente. 
 
 
-#### 5.1.- CONTRASTE DE HIPOTESIS
-
+#### 5.1.- CONTRASTE DE HIPOTESIS.  
 
 Segmentamos el datastet
 
@@ -1138,9 +1137,9 @@ hf_nohp<- hf[hf$high_blood_pressure==0 ,]
 
 ```
 
-#### 5.1.1 - CONTRASTE SOBRE LA MEDIA EN FALLECER
+#### 5.1.1 - CONTRASTE SOBRE LA MEDIA EN EL TIEMPO EN FALLECER  
 
-PAra la realización del contraste necesitamos calcular previamente  la Media del tiempo en fallecer para cada subset creado.
+Para la realización del contraste necesitamos calcular previamente  la Media del tiempo en fallecer para cada subset creado.
 
 ```{r }
 #cálculo de medias de tiempo en fallacer en función de variables diatomicas
@@ -1246,7 +1245,7 @@ c(test_sm[["p.value"]], test_m[["p.value"]],test_a[["p.value"]],test_d[["p.value
 ```
 En ninguno de los casos el p-value es menor que el nivel de significación (0.05). No pueden rechazarse ninguna de las hipótesis nulas y por lo tanto las medias de tiempo no son diferentes en ningún caso. 
 
-#### 5.1.2 - CONTRASTE SOBRE LOS PORCENTAJES DE FALLECIDOS
+#### 5.1.2 - CONTRASTE SOBRE LOS PORCENTAJES DE FALLECIDOS  
 
 Calculamos los porcentajes de fallecidos frente a los totales de cada muestra 
 
