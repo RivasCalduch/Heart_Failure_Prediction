@@ -35,6 +35,9 @@ library(psych)
 #Libreria para el manejo de datos
 library(dplyr)
 
+# Librería para la obtención de la matriz de confusión
+library(caret)
+
 #Libreria para el análisis de la importancia de las variables
 library(Boruta)
 
@@ -51,6 +54,8 @@ Los datos que recoge el dataset nos informan de datos médicos en el momento del
 Permitiría preguntas de tipo ¿Es más probable que sobreviva un paciente fumador a un ataque al corazón? ¿Es más probable que sobreviva una persona de sexo femenino? ¿y una persona con diabetes?  
 
 Los datos quizá también permitan generar un modelo predictivo que informara de cuáles son los pacientes más o menos probables de fallecer en función de una serie de condiciones: edad, concentración de creatinina en suero... y focalizarse más en este tipo de pacientes para tratar de aumentar la posibilidad de supervivencia.  
+
+El dataset incorpora una variable que es el tiempo desde que el paciente es ingresado hasta que el paciente, o bien fallece, o bien es dado de alta. Podemos preguntarnos si el hecho de ser fumador o tener diabetes o el sexo condiciona el número de días hasta que un paciente fallece. 
 
 Los datos los podemos encontrar aqui: https://www.kaggle.com/andrewmvd/heart-failure-clinical-data. Los datos forman parte de un artículo publicado en el BMC Medical Informatics and Decision Making. EL artículo completo puede verse aquí: https://bmcmedinformdecismak.biomedcentral.com/articles/10.1186/s12911-020-1023-5#Tab8. Los autores del articulo son citados en el apartado agradecimientos.  
 
@@ -78,7 +83,15 @@ Las variables del dataset son:
 
 # Carga del fichero en la variable hf
 
-hf <- read.table("../data/heart_failure_clinical_records_dataset.csv", header= TRUE, sep=",", dec="." )
+
+
+#ruta<-"../data/"
+ruta<-"C:/Users/MAJIMENE/02.UOC/Master_Data_Science/Tipologia Datos/Practica2/"
+file<- "heart_failure_clinical_records_dataset.csv"
+
+rutaFile <- paste(ruta,file,sep="")
+
+hf <- read.table(rutaFile, header= TRUE, sep=",", dec="." )
 
 ```
 
@@ -309,35 +322,27 @@ limite_inferior_leve
 limite_inferior_extremo
 ```
 
-(Pendiente de la tomar decisión sobre lo que hacemos con la variable)
+Si bien existen valores extremos para esta variable no existen criterios objetivos para eliminar dichas medidas por lo que mantendremos la totalidad de los valores.   
+
+Análisis de la variable frente a la variable dependiente:  
 
 ```{r}
-
 par(mfrow=c(1,2))
-hist(hf$creatinine_phosphokinase, breaks = 100)
-hist(log(hf$creatinine_phosphokinase), breaks = 100)
-
-```
-
-Se observan valores atípicos (outliers).
-
-Análisis de la variable frente a la variable dependiente:
-
-```{r}
-
 p1 <- ggplot(data = hf, aes(x = creatinine_phosphokinase, fill = DEATH_EVENT)) +
       geom_density(alpha = 0.5) +
       scale_fill_manual(values = c("gray50", "orangered2")) +
       geom_rug(aes(color = DEATH_EVENT), alpha = 0.5) +
       scale_color_manual(values = c("gray50", "orangered2")) +
       theme_bw()
-p2 <- ggplot(data = hf, aes(x = DEATH_EVENT, y = creatinine_phosphokinase, color = DEATH_EVENT)) +
+p2 <- ggplot(data = hf, aes(x = DEATH_EVENT, y = creatinine_phosphokinase, 
+        color = DEATH_EVENT)) +
       geom_boxplot(outlier.shape = NA) +
       geom_jitter(alpha = 0.3, width = 0.15) +
       scale_color_manual(values = c("gray50", "orangered2")) +
       theme_bw()
 final_plot <- ggarrange(p1, p2, legend = "top")
-final_plot <- annotate_figure(final_plot, top = text_grob("creatinine_phosphokinase", size = 15))
+final_plot <- annotate_figure(final_plot, top = 
+        text_grob("creatinine_phosphokinase", size = 15))
 final_plot
 
 ```
@@ -345,8 +350,6 @@ final_plot
 Estadísticos según la variable dependiente:
 
 ```{r}
-
-# Estadísticos del precio del billete de los supervivientes y fallecidos
 hf %>% filter(!is.na(creatinine_phosphokinase)) %>% group_by(DEATH_EVENT) %>%
           summarise(media = mean(creatinine_phosphokinase),
                     mediana = median(creatinine_phosphokinase),
@@ -404,7 +407,6 @@ Estadísticos según la variable dependiente:
 
 ```{r}
 
-# Estadísticos del precio del billete de los supervivientes y fallecidos
 hf %>% filter(!is.na(ejection_fraction)) %>% group_by(DEATH_EVENT) %>%
           summarise(media = mean(ejection_fraction),
                     mediana = median(ejection_fraction),
@@ -485,7 +487,7 @@ limite_inferior_leve
 limite_inferior_extremo
 ```
 
-(Pendiente de la tomar decisión sobre lo que hacemos con la variable)
+Si bien existen valores extremos para esta variable no existen criterios objetivos para eliminar dichas medidas por lo que mantendremos la totalidad de los valores.  
 
 Análisis de la variable frente a la variable dependiente:
 
@@ -511,8 +513,6 @@ final_plot
 Estadísticos según la variable dependiente:
 
 ```{r}
-
-# Estadísticos del precio del billete de los supervivientes y fallecidos
 hf %>% filter(!is.na(platelets)) %>% group_by(DEATH_EVENT) %>%
           summarise(media = mean(platelets),
                     mediana = median(platelets),
@@ -617,8 +617,6 @@ final_plot
 Estadísticos según la variable dependiente:
 
 ```{r}
-
-# Estadísticos del precio del billete de los supervivientes y fallecidos
 hf %>% filter(!is.na(serum_creatinine)) %>% group_by(DEATH_EVENT) %>%
           summarise(media = mean(serum_creatinine),
                     mediana = median(serum_creatinine),
@@ -724,7 +722,6 @@ Estadísticos según la variable dependiente:
 
 ```{r}
 
-# Estadísticos del precio del billete de los supervivientes y fallecidos
 hf %>% filter(!is.na(serum_sodium)) %>% group_by(DEATH_EVENT) %>%
           summarise(media = mean(serum_sodium),
                     mediana = median(serum_sodium),
@@ -791,7 +788,8 @@ hf %>% filter(!is.na(time)) %>% group_by(DEATH_EVENT) %>%
 
 ```
 
-(Pendiente de decidir si descartamos la variable)
+Esta variable refleja el tiempo que transcurre desde que el paciente es ingresado hasta que, o bién fallece o bien es dado de alta. No es una variable que pueda ser utilizada desde un punto de vista de diagnóstico pero sí puede ser utilizado como objetivo del análisis para estudiar si los valores medios en días de supervivencia de los pacientes vienen condicionados por algún tipo de variable.   
+
 
 #### 4.1.2.2 Variables cualitativas:
 
@@ -833,7 +831,7 @@ prop.table(table(hf$anaemia, hf$DEATH_EVENT),1) %>% round(digits = 2)
 
 ```
 
-De análisis de los datos se aprecia que el porcentaje de pacientes con anemia es mayor en aquellos en los que han fallecido.
+De análisis de los datos podría deducirse que el porcentaje de pacientes con anemia es mayor en aquellos en los que han fallecido. Aunque esta percepción deberá confirmarse estadísticamente mediante un contraste.   
 
 **diabetes**
 
@@ -909,7 +907,7 @@ prop.table(table(hf$high_blood_pressure, hf$DEATH_EVENT),1) %>% round(digits = 2
 
 ```
 
-Se observa que la hipertensión esta presente en mayor proporcion en los casos de fallecimiento.
+De análisis de los datos podría deducirse que el porcentaje de pacientes con hipertensión es mayor en aquellos en los que han fallecido. Aunque esta percepción deberá confirmarse estadísticamente mediante un contraste.  
 
 **sex**
 
@@ -987,67 +985,85 @@ prop.table(table(hf$smoking, hf$DEATH_EVENT),1) %>% round(digits = 2)
 
 No se observa que la variable sea discriminante. Dado el número de fallecidos que fuman es similar a los que no la tienen.
 
-### 4.2. Comprobación de la normalidad y homogeneidad de la varianza:
+### 4.2. Comprobación de la normalidad de las variables
 
-```{r}
+Comprobamos la normalidad de las variables mediante técnicas gráficas:  
 
-par(mfrow=c(2,4))
-hist(hf$age, main = "", xlab = "Age")
-hist((hf$creatinine_phosphokinase), main = "", xlab = "creatinine_phosphokinase")
-hist(hf$ejection_fraction, main = "", xlab = "ejection_fraction")
-hist(hf$platelets, main = "", xlab = "platelets")
-hist((hf$serum_creatinine), main = "", xlab = "serum_creatinine")
-hist(hf$serum_sodium, main = "", xlab = "serum_sodium")
-hist(hf$time, main = "", xlab = "time")
-
-
-```
-
-Age, ejection_fraction, platelets, serum_sodium son variables más o menos normales.  
-Creatinine_phosphokinase, serum creatinine no están normalizadas (con claramente logaritmicas)
-time es una variable que representa el tiempo hasta que el paciente o bien se muere o bien se le da de alta, por lo que desde el punto de vista de diagnóstico no debería ser utilizado (si para posteriores análisis)
-
-
-Comprobamos la normalidad de las variables Age, ejection_fraction, platelets, serum_sodium
+Age y creatinine_phosphokinase
 
 ```{r}
 
 par(mfrow=c(1,4))
 
-#boxplot(hf$age, main = "", xlab = "Age")
+
+hist(hf$age, main = "", xlab = "Age")
 qqnorm(hf$age, main = "", xlab = "Age", col="red")
 qqline(hf$age, main = "", xlab = "Age", col="black")
-#boxplot(hf$creatinine_phosphokinase, main = "", xlab = "creatinine_phosphokinase")
-#qqnorm(hf$creatinine_phosphokinase, main = "", xlab = "creatinine_phosphokinase", col="red")
-#boxplot(hf$ejection_fraction, main = "", xlab = "ejection_fraction")
+
+hist((hf$creatinine_phosphokinase), main = "", xlab = "creatinine_phosphokinase")
+qqnorm(hf$creatinine_phosphokinase, main = "", xlab = "creatinine_phosphokinase", 
+       col="red")
+qqline(hf$creatinine_phosphokinase, main = "", xlab = "Age", col="black")
+```
+
+
+ejection_fraction y platelets
+
+```{r}
+par(mfrow=c(1,4))
+
+hist(hf$ejection_fraction, main = "", xlab = "ejection_fraction")
 qqnorm(hf$ejection_fraction, main = "", xlab = "ejection_fraction", col="red")
 qqline(hf$ejection_fraction, main = "", xlab = "ejection_fraction", col="black")
-#boxplot(hf$platelets, main = "", xlab = "platelets")
+
+hist(hf$platelets, main = "", xlab = "platelets")
 qqnorm(hf$platelets, main = "", xlab = "platelets", col="red")
 qqline(hf$platelets, main = "", xlab = "platelets", col="black")
-#boxplot(hf$serum_creatinine, main = "", xlab = "serum_creatinine")
-#qqnorm(hf$serum_creatinine, main = "", xlab = "serum_creatinine", col="red")
-#boxplot(hf$serum_sodium, main = "", xlab = "serum_sodium")
-qqnorm(hf$serum_sodium, main = "", xlab = "serum_sodium", col="red")
-qqline(hf$serum_sodium, main = "", xlab = "", col="black")
-#boxplot(hf$time, main = "", xlab = "time")
-#qqnorm(hf$time, main = "", xlab = "time", col="red")
 
 ```
+
+serum_creatinine y serum_sodium
+
+```{r}
+par(mfrow=c(1,4))
+
+hist((hf$serum_creatinine), main = "", xlab = "serum_creatinine")
+qqnorm(hf$serum_creatinine, main = "", xlab = "serum_creatinine", col="red")
+qqline(hf$serum_creatinine, main = "", xlab = "Age", col="black")
+
+hist(hf$serum_sodium, main = "", xlab = "serum_sodium")
+qqnorm(hf$serum_sodium, main = "", xlab = "serum_sodium", col="red")
+qqline(hf$serum_sodium, main = "", xlab = "", col="black")
+```
+time
+
+```{r}
+par(mfrow=c(1,4))
+
+hist(hf$time, main = "", xlab = "time")
+qqnorm(hf$time, main = "", xlab = "time", col="red")
+qqline(hf$time, main = "", xlab = "Age", col="black")
+```
+Age, ejection_fraction, platelets, serum_sodium y time son variables más o menos normales (puede observarse en la gráfica de distribución y en la linea qqnorm.  
+
+Creatinine_phosphokinase, serum creatinine no están normalizadas (con claramente logaritmicas)
 
 Si cambiamos ahora los valores de creatinine_phosphokinase y serum_creatinine por sus valores logarítmicos, tenemos que las variables mejoran en su normalidad:
 
 ```{r}
 
-par(mfrow=c(2,2))
+par(mfrow=c(1,4))
 
 hist(log(hf$creatinine_phosphokinase), main = "", xlab = "creatinine_phosphokinase")
-qqnorm(log(hf$creatinine_phosphokinase), main = "", xlab = "creatinine_phosphokinase", col="red")
+qqnorm(log(hf$creatinine_phosphokinase), main = "", xlab = "creatinine_phosphokinase",
+       col="red")
 qqline(log(hf$creatinine_phosphokinase), main = "", xlab = "", col="black")
 hist((log(hf$serum_creatinine)), main = "", xlab = "serum_creatinine")
-qqnorm(log(hf$serum_creatinine), main = "", xlab = "serum_creatinine", col="blue")
+qqnorm(log(hf$serum_creatinine), main = "", xlab = "serum_creatinine", col="red")
 qqline(log(hf$serum_creatinine), main = "", xlab = "serum_creatinine", col="black")
 ```
+
+\newpage
 
 ### 4.3. Análisis de correlación entre las variables numéricas:
 
@@ -1101,7 +1117,8 @@ Segmentamos el datastet
 
 ```{r }
 
-#Creación de subsets de trabajo de variables cualitativas anaemia, diabetes, high_blood_pressure
+#Creación de subsets de trabajo de variables cualitativas anaemia, diabetes, 
+#high_blood_pressure
 
 
 hf_sm <- hf[hf$smoking==1 ,]
@@ -1167,7 +1184,7 @@ c(mean(hp), mean(nohp))
 mean(hf$time[hf$DEATH_EVENT==1])
 
 ```
-A priori podríamos suponer que el tiempo medio que tarda en fallecer una persona sí depende de las variables cualitativas, pero realizamos el contraste estadístico.
+A priori podríamos suponer que el tiempo medio que tarda en fallecer una persona sí depende de alguna de las  variables cualitativas, pero realizamos el contraste estadístico de cara aconfirmar tales suposiciones.
 
 Para ello en primer lugar sabemos que la media de una función con más de 30 muestras es normal por el teorema del límite central.
 
@@ -1192,7 +1209,8 @@ vd<-var.test(d,nod, conf.level=0.95)
 # hipertensos/no hipertensos
 vhp<-var.test(hp,nohp, conf.level=0.95)
 
-c(vsm[["p.value"]], vm[["p.value"]],va[["p.value"]],vd[["p.value"]],vhp[["p.value"]])
+c(vsm[["p.value"]], vm[["p.value"]],va[["p.value"]],vd[["p.value"]],
+  vhp[["p.value"]])
 
 ```
 
@@ -1208,7 +1226,8 @@ Por defecto trabajaremos con un nivel de confianza del 95% y por lo tanto un niv
 
 ```{r }
 
-#Contraste de hipótesis. Muestras poblacionales. Varianzas desconocidas pero iguales. Con un 95% de nivel de confianza
+#Contraste de hipótesis. Muestras poblacionales. Varianzas desconocidas pero iguales. 
+#Con un 95% de nivel de confianza
 
 #fumadores/no fumadores
 test_sm<-t.test(sm,nosm, alternative="two.sided", var.equal=TRUE, conf.level=0.95)
@@ -1221,7 +1240,8 @@ test_d<-t.test(d,nod, alternative="two.sided", var.equal=TRUE, conf.level=0.95)
 #hipertenso/no hipertenso
 test_hp<-t.test(hp,nohp, alternative="two.sided", var.equal=TRUE, conf.level=0.95)
 
-c(test_sm[["p.value"]], test_m[["p.value"]],test_a[["p.value"]],test_d[["p.value"]],test_hp[["p.value"]])
+c(test_sm[["p.value"]], test_m[["p.value"]],test_a[["p.value"]],test_d[["p.value"]],
+  test_hp[["p.value"]])
 
 ```
 En ninguno de los casos el p-value es menor que el nivel de significación (0.05). No pueden rechazarse ninguna de las hipótesis nulas y por lo tanto las medias de tiempo no son diferentes en ningún caso. 
@@ -1330,7 +1350,8 @@ nhp <- c(nrow(hf_hp), nrow(hf_nohp) )
 prop_hp <- prop.test(xhp, nhp, alternative = "two.sided")
 
 
-c(prop_sm[["p.value"]], prop_m[["p.value"]],prop_a[["p.value"]],prop_d[["p.value"]],prop_hp[["p.value"]])
+c(prop_sm[["p.value"]], prop_m[["p.value"]],prop_a[["p.value"]],prop_d[["p.value"]],
+  prop_hp[["p.value"]])
 
 ```
 De nuevo en todos los casos, p-value es superior al nivel de significación, por lo que no puede rechazarse la hipotesis nula. Los porcentajes de fallecidos en todos y cada uno de los casos son iguales.    
@@ -1340,30 +1361,36 @@ No hay diferencias con un nivel de confianza del 95% entre ser fumador o no o se
 ### 5.2 - MODELO DE REGRESION LOGISTICA. DIAGNOSTICO DE PROBABILIDAD DE FALLECIMIENTO  TRAS UN INFARTO
 
 
-Para obtener un modelo que sirva para diagnosticar las probabilidades de supervivencia tras un infarto vamos a calcular un modelo logístico. El hecho de que la variable a predecir sea dicotómica nos impide utilizar un modelo lineal. Podríamos utilizar otros modelos de predicción (selección, clasificación) pero vamos a realizar un modelo logístico.  
+Para obtener un modelo que sirva para diagnosticar las probabilidades de supervivencia tras un infarto vamos a calcular un modelo de regresión logístico. Esto es así dado que la variable a predecir es dicotómica.  Podríamos utilizar otros modelos de predicción (selección, clasificación) pero vamos a realizar un modelo logístico.  
 
-Calcularemos inicialmente las variables que más intervienen en el modelo y posteriormente obtendremos una estimación de la seguridad del mismo. 
+Calcularemos inicialmente las variables que más intervienen en el modelo y posteriormente obtendremos una estimación de la seguridad del mismo.  
+
+Las variables serum_creatinine y creatinine_phosphokinase las vamos a utilizar en forma logarítmica.
 
 Dado que a priori no sabemos qué variables intervienen más en el modelo las incorporamos todas en el modelo.
-
-La variable serum_creatinine, tal y como habíamos visto en apartados anteriores podemos normalizarla si aplicamos el logaritmo. 
 
 ```{r}
 
 # modelo logístico
 
-glm_hf1 <- glm(formula= factor(DEATH_EVENT)~ age + log(serum_creatinine) + ejection_fraction + (creatinine_phosphokinase) + serum_sodium + platelets + factor(sex) + factor(smoking) + factor(high_blood_pressure) + factor(diabetes) + anaemia , family=binomial(link=logit), data = hf)
+glm_hf1 <- glm(formula= factor(DEATH_EVENT)~ age + log(serum_creatinine) + 
+                 ejection_fraction + log(creatinine_phosphokinase) + serum_sodium + 
+                 platelets + factor(sex) + factor(smoking) + 
+                 factor(high_blood_pressure) + factor(diabetes) + anaemia , 
+                 family=binomial(link=logit), data = hf)
 summary(glm_hf1)
 ```
 Interpretación modelo logístico:
 
-El logit, es decir,  ln(P(Y=1/X)/1-P(Y=1/X)) es  4.18 + 5.093e-02 * age + 1.614 * log(serum_creatinine)  -6.48e-02 * ejection_fraction + 3.24e-04 * creatinine_phosphokinase 
+El logit, es decir,  ln(P(Y=1/X)/1-P(Y=1/X)) es  2.502 + 4.979e-02 * age + 1.636e+00 * log(serum_creatinine)  -6.403e-02 * ejection_fraction + 2.411e-01 * creatinine_phosphokinase 
   
-Las variables cuyo p-value (Pr(>|z| del estadístico de Wald, z)  es mayor que el nivel de significación (0.05) no son significativas y no afectan al cálculo del logit)
+Las variables cuyo p-value (Pr(>|z| del estadístico de Wald, z)  es mayor que el nivel de significación (0.05) no son significativas y no afectan al cálculo del logit).  
 
-AIC (Akaike Information Criterion) es el metodo matemático utilizado para calcular como de bueno es un modelo. Cuanto menor sea el valor de AIC mejor será el modelo.  
+Ninguna de las variables dicotómicas tienen peso en el modelo.  
 
-Se pueden calcular los Odds Ratio de cada variable como el exp de los coeficientes (por defecto con un intervalo de confianza al 95%).  
+AIC (Akaike Information Criterion) es el metodo matemático utilizado para calcular cómo de bueno es un modelo. Cuanto menor sea el valor de AIC mejor será el modelo.  
+
+Se pueden calcular los Odds Ratio de cada variable como el exp de los coeficientes (por defecto con un nivel de confianza del 95%).  
 
   
 
@@ -1376,7 +1403,7 @@ Cuando el odds ratio = 1 indica la no existencia de relación entre variables.
 Cuando el odds ratio > 1 indica que existe una relación entre variables y que incrementos en la variable independiente aumenta la probabilidad de ocurrir el evento (fallecimiento)
 Cuando el odds ratio < 1 indica que existe una relación negativa. Es decir, incrementos de la variable independiente disminuye la probabilidad del evento (fallecimiento)  
 
-Cuanto mayor (o menor) sea el valor del odds ratio respecto a 1 mayor será la variación de la probabilidad por cada unidad que aumente la variable, asi, para la variable age (por ejemplo), la relación es mayor que 1, y al ser variable continua, indica que por cada unidad que aumenta, el odds de DEATH_EVENT aumenta un 1.052. Es decir la probabilidad de fallecer dividido por la probabilidad de no fallecer es un 1.052 mayor.   
+Cuanto mayor (o menor) sea el valor del odds ratio respecto a 1 mayor será la variación de la probabilidad por cada unidad que aumente la variable, asi, para la variable age (por ejemplo), la relación es mayor que 1, y al ser variable continua, indica que por cada unidad que aumenta, el odds de DEATH_EVENT aumenta un 1.051. Es decir la probabilidad de fallecer dividido por la probabilidad de no fallecer es un 1.051 mayor.   
 
 De cara a conocer cuáles son las variables a tener en cuenta en el modelo logístico hay que tener en cuenta, por tanto, el valor del odd ratio, el p valor y el AIC del modelo resultante. 
 
@@ -1386,63 +1413,59 @@ Creamos varios modelos y seleccionamos el que tiene el AIC menor
 
 # Determinación del modelo logístico
 
-# en primer lugar con las variables significativas desde el punto de vista del p-value del estadístico de Wald
-glm_hf2 <- glm(formula= factor(DEATH_EVENT)~ age + log(serum_creatinine) + ejection_fraction  + creatinine_phosphokinase, family=binomial(link=logit), data = hf)
+# en primer lugar con las variables numéricas significativas desde el punto de vista del 
+# p-value del estadístico de Wald
+glm_hf2 <- glm(formula= factor(DEATH_EVENT)~ age + log(serum_creatinine) + 
+                 ejection_fraction, family=binomial(link=logit), data = hf)
 glm_hf2 [["aic"]]
+
 #vamos añadiendo variables numéricas de menor a mayor significancia
-glm_hf3 <- glm(formula= factor(DEATH_EVENT)~ age +log(serum_creatinine) + ejection_fraction + creatinine_phosphokinase + serum_sodium, family=binomial(link=logit), data = hf)
+glm_hf3 <- glm(formula= factor(DEATH_EVENT)~ age + log(serum_creatinine) + 
+               ejection_fraction + log(creatinine_phosphokinase), 
+               family=binomial(link=logit), data = hf)
 glm_hf3 [["aic"]]
 
-glm_hf4 <- glm(formula= factor(DEATH_EVENT)~ age + log(serum_creatinine) + ejection_fraction + creatinine_phosphokinase  + platelets, family=binomial(link=logit), data = hf)
+glm_hf4 <- glm(formula= factor(DEATH_EVENT)~ age + log(serum_creatinine) + 
+               ejection_fraction  + serum_sodium , family=binomial(link=logit), 
+               data = hf)
 glm_hf4 [["aic"]]
 
 #añadimos ahora variables dicotómicas a partir del mejor modelo con variables numéricas
-glm_hf5 <- glm(formula= factor(DEATH_EVENT)~ age + log(serum_creatinine) + ejection_fraction + creatinine_phosphokinase +  high_blood_pressure + anaemia, family=binomial(link=logit), data = hf)
+glm_hf5 <- glm(formula= factor(DEATH_EVENT)~ age + log(serum_creatinine) + 
+               ejection_fraction +  high_blood_pressure, 
+               family=binomial(link=logit), data = hf)
 glm_hf5 [["aic"]]
 
-glm_hf6 <- glm(formula= factor(DEATH_EVENT)~ age + log(serum_creatinine) + ejection_fraction + creatinine_phosphokinase + serum_sodium + high_blood_pressure + anaemia + sex , family=binomial(link=logit), data = hf)
+glm_hf6 <- glm(formula= factor(DEATH_EVENT)~ age + log(serum_creatinine) + 
+                 ejection_fraction + serum_sodium + high_blood_pressure + 
+                 anaemia , family=binomial(link=logit), data = hf)
 glm_hf6 [["aic"]]
 
 
 ```
 
-El modelo que proporciona el AIC más bajo es el numero 5 que contempla las variables  age, log(serum_creatinine), ejection_fraction, creatinine_phosphokinase, high_blood_pressure y anaemia.
+El modelo que proporciona el AIC más bajo es el numero 5 que contempla las variables  age, log(serum_creatinine), ejection_fraction y  high_blood_pressure.
 
-El modelo obtenido ya nos proporciona unos valores estimados que podemos comparar con los reales. En fitted.values se encuentra la probabilidad (como el exp(logit)/(1+exp(logit))). Para valores mayores de 0.5 estimamos que la persona fallece y para los casos en que es menor la persona sobrevive. 
-
-```{r}
-#Exactitud del modelo estimado. Matriz de confusión
-
-pred<- glm_hf5[["fitted.values"]]
-pred <- data.frame(pred,hf$DEATH_EVENT)
-for (i in 1:nrow(pred)) {
-  if (pred$pred[i] < 0.5){
-  pred$pred[i] <- 0  
-  }else{
-  pred$pred[i] <- 1  
-  }
-}
-
-names (pred) <- c("pred","real")
-
-#matriz de confusión
-confMatrix<-table(pred$pred, pred$real)
-
-confMatrix
-
-```
+Obtenemos la precisión del modelo mediante la metriz de confusión. Utilizamos la que aporta el paquete caret de R.    
 
 ```{r}
-# precisión
-(confMatrix[1,1]+confMatrix[2,2])/(confMatrix[1,1]+confMatrix[2,2]+confMatrix[1,2]+confMatrix[2,1])
+# Precisión del modelo estimado. Matriz de confusión
+
+confusionMatrix(table(predict(glm_hf5, type="response") >= 0.5,hf$DEATH_EVENT == 1))
 
 ```
+El modelo tiene una precisión del 76.6 %, una sensibilibilidad del 50% (capacidad de predecir fallecimientos) y una especificidad del 89% (capacidad de estimar supervivientes).  
+
+Nota: la función de R muestra una sensibilidad del 89% y una especificidad del 50% pero está considerando como 'Positivos' a la clase FALSE (al contrario que estamos buscando).  
+
 
 \newpage
 
 ## 6.- CONCLUSIONES
 
 Se ha realizado un análisis pormenorizado de cada variable del dataset, con mayor foco en la variable a discriminar. Este análisis visual ya nos informa de que las variables dicotómicas iban a tener poca capacidad predictiva o estadística.  
+
+Se ha realizado un analisis de l normalidad de las variables numéricas y se han normalizado aquellas que presentaban menor forma normal mediante la utilización del logaritmo de las mismas.
 
 Se ha realizado una serie de contrastes estadísticos con dos preguntas a responder:
 
@@ -1452,9 +1475,9 @@ Se ha realizado una serie de contrastes estadísticos con dos preguntas a respon
 
 Posteriormente se ha realizado un modelo de regresión logística a partir de los datos (dado que la variable a predecir es dicotómica) para predecir si un paciente en el momento de producirse un ataque al corazón tiene más probabilidad o no (fijándola en el 50%) de que fallezca.  
 
-El modelo de regresión logística nos indica que las variables más importantes que intervienen en el modelo son age, serum_creatinine, ejection_fraction, creatinine_phosphokinase, high_blood_pressure y anaemia. Estas dos últimas en muy pequeña proporción.  
+El modelo de regresión logística nos indica que las variables más importantes que intervienen en el modelo son age, log(serum_creatinine), ejection_fraction y high_blood_pressure . Esta última en muy pequeña proporción.  
 
-El modelo desarrollado tiene una fiabilidad del 77% con un poco más del 50% de capacidad de discernimiento en pacientes con probabilidad de fallecer.  
+El modelo desarrollado tiene una fiabilidad de casi un 77% con un 50% de capacidad de discernimiento en pacientes con probabilidad de fallecer.  
 
 \newpage
 
@@ -1485,7 +1508,7 @@ CC BY 4.0
 
 ### 9.1. Estudio de la importacia de las variables en los modelos.
 
-Procedemos a la selección de variables. Usaremos el paquete Boruta para ello, dada su capacidad de mostrar visualmente la importancia de cada variable del dataset.
+Se podría hacer un anális rápido para seleccionar las variables con las que trabajar. Para ello hemos seleccionado el paquete Boruta dada su capacidad de mostrar visualmente la importancia de cada variable del dataset.
 
 Boruta realiza una búsqueda de tipo Backwards mediante un algoritmo wrapper de Random Forest, y por defecto, usa un p-valor del 0.01 para confirmar cuándo una variable es estadísticamente importante o no.
 
