@@ -1337,8 +1337,6 @@ De nuevo en todos los casos, p-value es superior al nivel de significación, por
 
 No hay diferencias con un nivel de confianza del 95% entre ser fumador o no o ser hombre/mujer o tener diabetes... a la hora de tener más probabilidad de fallecer tras un infarto, según la muestra de datos analizada.  
 
-
-
 ### 5.2 - MODELO DE REGRESION LOGISTICA. DIAGNOSTICO DE PROBABILIDAD DE FALLECIMIENTO  TRAS UN INFARTO
 
 
@@ -1415,25 +1413,28 @@ El modelo obtenido ya nos proporciona unos valores estimados que podemos compara
 ```{r}
 #Exactitud del modelo estimado. Matriz de confusión
 
-#pred<- glm_hf5[["fitted.values"]]
-#pred <- data.frame(pred,hf$DEATH_EVENT,resul)
-#for (i in 1:nrow(pred)) {
-#  if (pred$pred[i] < 0.5){
-#  pred$pred[i] <- 0  
-#  }else{
-#  pred$pred[i] <- 1  
-#  }
-#}
-#names (pred) <- c("pred","real")
+pred<- glm_hf5[["fitted.values"]]
+pred <- data.frame(pred,hf$DEATH_EVENT)
+for (i in 1:nrow(pred)) {
+  if (pred$pred[i] < 0.5){
+  pred$pred[i] <- 0  
+  }else{
+  pred$pred[i] <- 1  
+  }
+}
+
+names (pred) <- c("pred","real")
 
 #matriz de confusión
-#confMatrix<-table(pred$pred, pred$real)
+confMatrix<-table(pred$pred, pred$real)
 
-#confMatrix
+confMatrix
 
+```
+
+```{r}
 # precisión
-#(confMatrix[1,1]+confMatrix[2,2])/sum(t)
-
+(confMatrix[1,1]+confMatrix[2,2])/(confMatrix[1,1]+confMatrix[2,2]+confMatrix[1,2]+confMatrix[2,1])
 
 ```
 
