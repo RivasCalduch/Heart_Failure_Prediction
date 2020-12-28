@@ -85,8 +85,8 @@ Las variables del dataset son:
 
 
 
-#ruta<-"../data/"
-ruta<-"C:/Users/MAJIMENE/02.UOC/Master_Data_Science/Tipologia Datos/Practica2/"
+ruta<-"../data/"
+#ruta<-"C:/Users/MAJIMENE/02.UOC/Master_Data_Science/Tipologia Datos/Practica2/"
 file<- "heart_failure_clinical_records_dataset.csv"
 
 rutaFile <- paste(ruta,file,sep="")
@@ -593,6 +593,8 @@ limite_inferior_leve
 limite_inferior_extremo
 ```
 
+Si bien existen valores extremos para esta variable no existen criterios objetivos para eliminar dichas medidas por lo que mantendremos la totalidad de los valores.
+
 Análisis de la variable frente a la variable dependiente:
 
 ```{r}
@@ -696,6 +698,8 @@ limite_inferior_leve
 ```{r}
 limite_inferior_extremo
 ```
+
+Si bien existen valores extremos para esta variable no existen criterios objetivos para eliminar dichas medidas por lo que mantendremos la totalidad de los valores.
 
 Análisis de la variable frente a la variable dependiente:
 
@@ -983,7 +987,7 @@ prop.table(table(hf$smoking, hf$DEATH_EVENT),1) %>% round(digits = 2)
 
 ```
 
-No se observa que la variable sea discriminante. Dado el número de fallecidos que fuman es similar a los que no la tienen.
+No se observa que la variable sea discriminante. Dado el número de fallecidos que fuman es similar a los que no fuman.
 
 ### 4.2. Comprobación de la normalidad de las variables
 
@@ -1453,7 +1457,7 @@ Obtenemos la precisión del modelo mediante la metriz de confusión. Utilizamos 
 confusionMatrix(table(predict(glm_hf5, type="response") >= 0.5,hf$DEATH_EVENT == 1))
 
 ```
-El modelo tiene una precisión del 76.6 %, una sensibilibilidad del 50% (capacidad de predecir fallecimientos) y una especificidad del 89% (capacidad de estimar supervivientes).  
+El modelo tiene una precisión del 76.6 %, una sensibilidad del 50% (capacidad de predecir fallecimientos) y una especificidad del 89% (capacidad de estimar supervivientes).  
 
 Nota: la función de R muestra una sensibilidad del 89% y una especificidad del 50% pero está considerando como 'Positivos' a la clase FALSE (al contrario que estamos buscando).  
 
